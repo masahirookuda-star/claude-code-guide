@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 完全ガイドブック</title>
+<style>
+  :root {
+    --primary: #7C3AED;
+    --primary-light: #A78BFA;
+    --primary-dark: #5B21B6;
+    --accent: #06B6D4;
+    --accent2: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --dark: #0F172A;
+    --dark2: #1E293B;
+    --dark3: #334155;
+    --mid: #475569;
+    --light: #94A3B8;
+    --lighter: #CBD5E1;
+    --bg: #F8FAFC;
+    --white: #FFFFFF;
+    --card-bg: #FFFFFF;
+    --border: #E2E8F0;
+    --code-bg: #1E293B;
+    --gradient1: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
+    --gradient2: linear-gradient(135deg, #5B21B6 0%, #0891B2 100%);
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* NAV */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-logo {
+    font-weight: 800; font-size: 15px; color: var(--white);
+    letter-spacing: -0.3px;
+    display: flex; align-items: center; gap: 8px;
+    margin-right: auto;
+  }
+  .nav-logo span {
+    background: var(--gradient1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav a {
+    color: var(--lighter); text-decoration: none;
+    font-size: 12px; padding: 4px 10px; border-radius: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav a:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+
+  /* HERO */
+  .hero {
+    margin-top: 56px;
+    background: var(--dark);
+    padding: 80px 24px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.3) 0%, transparent 70%);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.4);
+    color: var(--primary-light);
+    padding: 4px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .hero h1 .grad {
+    background: var(--gradient1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    color: var(--light);
+    font-size: 17px;
+    max-width: 600px; margin: 0 auto 40px;
+    position: relative;
+  }
+  .hero-stats {
+    display: flex; justify-content: center; gap: 40px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat .num {
+    font-size: 32px; font-weight: 900;
+    background: var(--gradient1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-stat .label { color: var(--light); font-size: 12px; }
+
+  /* LAYOUT */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* SECTION */
+  .section { padding: 64px 0; }
+  .section:nth-child(even) { background: var(--white); }
+  .section-header { text-align: center; margin-bottom: 48px; }
+  .section-label {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--primary); margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 800; letter-spacing: -0.5px;
+    color: var(--dark);
+  }
+  .section-subtitle {
+    color: var(--mid);
+    font-size: 16px;
+    max-width: 560px; margin: 10px auto 0;
+  }
+
+  /* STEP CARDS */
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: flex; gap: 20px; align-items: flex-start;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .step:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .step-num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    background: var(--gradient1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: var(--white);
+  }
+  .step-content h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .step-content p { color: var(--mid); font-size: 14px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .nav a { display: none; }
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 14px;
+  }
+  .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .card p { color: var(--mid); font-size: 13px; line-height: 1.6; }
+
+  /* COLOR VARIANTS */
+  .purple .card-icon { background: rgba(124,58,237,0.1); }
+  .cyan .card-icon { background: rgba(6,182,212,0.1); }
+  .green .card-icon { background: rgba(16,185,129,0.1); }
+  .yellow .card-icon { background: rgba(245,158,11,0.1); }
+  .red .card-icon { background: rgba(239,68,68,0.1); }
+  .blue .card-icon { background: rgba(59,130,246,0.1); }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .lang {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 11px; color: var(--light);
+    font-family: monospace; letter-spacing: 0.5px;
+  }
+  .code-block code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+    font-size: 13px;
+    color: #E2E8F0;
+    white-space: pre;
+    line-height: 1.6;
+  }
+  .code-block code .comment { color: #64748B; }
+  .code-block code .key { color: #A78BFA; }
+  .code-block code .val { color: #34D399; }
+  .code-block code .str { color: #FCD34D; }
+  .code-block code .cmd { color: #60A5FA; }
+  .code-block code .highlight { color: #F472B6; }
+
+  /* TABS (OS) */
+  .os-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .os-tab {
+    padding: 6px 16px; border-radius: 8px; font-size: 13px;
+    font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+    background: var(--white); color: var(--mid);
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  .os-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    background: var(--dark2); color: var(--lighter);
+    padding: 10px 16px; text-align: left;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+  }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(124,58,237,0.04); }
+
+  /* BADGE */
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: rgba(16,185,129,0.12); color: #059669; }
+  .badge-yellow { background: rgba(245,158,11,0.12); color: #D97706; }
+  .badge-red { background: rgba(239,68,68,0.12); color: #DC2626; }
+  .badge-purple { background: rgba(124,58,237,0.12); color: #7C3AED; }
+  .badge-blue { background: rgba(59,130,246,0.12); color: #2563EB; }
+
+  /* CALLOUT */
+  .callout {
+    border-radius: 12px; padding: 16px 20px;
+    display: flex; gap: 12px; align-items: flex-start;
+    margin: 16px 0;
+  }
+  .callout-tip { background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); }
+  .callout-warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+  .callout-danger { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-text { font-size: 13px; line-height: 1.6; color: var(--dark3); }
+  .callout-text strong { color: var(--dark); }
+
+  /* AUTOMATION CARDS */
+  .auto-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px; overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .auto-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .auto-card-header {
+    padding: 24px 24px 16px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .auto-card-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .auto-card-meta h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .auto-card-meta p { font-size: 13px; color: var(--mid); }
+  .auto-card-body { padding: 0 24px 24px; }
+  .flow {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap; margin: 12px 0;
+  }
+  .flow-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .flow-arrow { color: var(--lighter); font-size: 14px; }
+  .tech-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tech-tag {
+    background: rgba(124,58,237,0.08); color: var(--primary);
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 600;
+  }
+
+  /* CONCEPT */
+  .concept-card {
+    border-radius: 20px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .concept-header {
+    padding: 28px; display: flex; align-items: center; gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .concept-emoji { font-size: 36px; }
+  .concept-header h3 { font-size: 20px; font-weight: 800; }
+  .concept-header p { font-size: 13px; color: var(--mid); margin-top: 2px; }
+  .concept-body { padding: 24px; background: var(--card-bg); }
+
+  /* SECURITY */
+  .sec-row {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-row:last-child { border-bottom: none; }
+  .sec-status {
+    flex-shrink: 0; width: 64px;
+    text-align: center;
+    padding-top: 2px;
+  }
+  .sec-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .sec-content p { font-size: 12px; color: var(--mid); }
+
+  /* CURSOR */
+  .cursor-flow {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--border); border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 768px) { .cursor-flow { grid-template-columns: 1fr; } }
+  .cursor-step {
+    background: var(--card-bg); padding: 24px;
+    text-align: center;
+  }
+  .cursor-step .icon { font-size: 32px; margin-bottom: 10px; }
+  .cursor-step h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .cursor-step p { font-size: 12px; color: var(--mid); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    background: var(--gradient1);
+    border-radius: 20px; padding: 40px;
+    text-align: center; color: var(--white);
+  }
+  .highlight-box h2 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+  .highlight-box p { opacity: 0.85; font-size: 15px; }
+
+  /* TOC */
+  .toc {
+    background: var(--dark);
+    color: var(--lighter);
+    border-radius: 16px; padding: 24px;
+    font-size: 13px;
+  }
+  .toc h4 { color: var(--white); font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+  .toc ol { list-style: decimal; padding-left: 18px; }
+  .toc li { padding: 3px 0; }
+  .toc a { color: var(--primary-light); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* FOOTER */
+  .footer {
+    background: var(--dark);
+    color: var(--mid);
+    text-align: center;
+    padding: 40px 24px;
+    font-size: 13px;
+  }
+  .footer a { color: var(--primary-light); text-decoration: none; }
+
+  /* INLINE CODE */
+  code.inline {
+    background: rgba(124,58,237,0.1);
+    color: var(--primary);
+    padding: 1px 6px; border-radius: 4px;
+    font-family: 'Menlo', monospace; font-size: 12px;
+  }
+
+  /* SCROLL */
+  html { scroll-behavior: smooth; }
+  :target { scroll-margin-top: 72px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>Claude Code</span> 完全ガイドブック</div>
+  <a href="#install">インストール</a>
+  <a href="#concepts">コア機能</a>
+  <a href="#security">セキュリティ</a>
+  <a href="#automation">自動化</a>
+  <a href="#cursor">Cursor連携</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🚀 AI自動化の決定版</div>
+  <h1>Claude Code で<br><span class="grad">業務を完全自動化</span>する</h1>
+  <p>コーディング・分析・情報収集・SNS投稿まで。AIを「使う」のではなく「働かせる」ための実践ガイドブック</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">7+</div><div class="label">自動化パターン</div></div>
+    <div class="hero-stat"><div class="num">Mac<br>Win</div><div class="label">両対応</div></div>
+    <div class="hero-stat"><div class="num">∞</div><div class="label">記憶・学習</div></div>
+    <div class="hero-stat"><div class="num">24h</div><div class="label">無人実行</div></div>
+  </div>
+</section>
+
+<!-- TOC -->
+<section class="section">
+  <div class="container">
+    <div class="grid-2">
+      <div>
+        <div class="section-label">このガイドについて</div>
+        <h2 class="section-title" style="margin-bottom:16px">Claude Code は何が違うのか</h2>
+        <p style="color:var(--mid);margin-bottom:16px">ChatGPT や Claude.ai との最大の違いは「<strong>自律的に動く</strong>」こと。ファイルを読み書きし、コマンドを実行し、外部サービスと連携し、スケジュールに従って無人で動き続けます。</p>
+        <div class="callout callout-tip">
+          <div class="callout-icon">💡</div>
+          <div class="callout-text"><strong>このガイドの対象者：</strong>Claude Code を初めて触る方。インストールから実践的な自動化まで、ステップバイステップで解説します。</div>
+        </div>
+      </div>
+      <div class="toc">
+        <h4>📋 目次</h4>
+        <ol>
+          <li><a href="#install">インストール（Mac / Windows）</a></li>
+          <li><a href="#quickstart">はじめての会話</a></li>
+          <li><a href="#memory">Memoryシステム（記憶）</a></li>
+          <li><a href="#skills">Skills（スラッシュコマンド）</a></li>
+          <li><a href="#rules">Rules（ルール設定）</a></li>
+          <li><a href="#hooks">Hooks（自動トリガー）</a></li>
+          <li><a href="#mcp">MCP（外部サービス連携）</a></li>
+          <li><a href="#security">セキュリティ設定</a></li>
+          <li><a href="#automation">自動化の実例7選</a></li>
+          <li><a href="#cursor">Cursor IDE 連携</a></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="section" id="install">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Step 1</div>
+      <div class="section-title">インストール</div>
+      <div class="section-subtitle">Mac / Windows どちらも5分以内に完了</div>
+    </div>
+
+    <!-- Mac -->
+    <div style="margin-bottom:40px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="font-size:24px">🍎</span>
+        <h3 style="font-size:18px;font-weight:700">Mac の場合</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Node.js をインストール</h3>
+            <p>公式サイト（nodejs.org）から LTS版をダウンロードしてインストール。または Homebrew を使う場合は以下のコマンドを実行。</p>
+            <div class="code-block">
+              <span class="lang">bash</span>
+              <code><span class="comment"># Homebrew 経由でインストール（Homebrew がない場合は brew.sh から先にインストール）</span>
+<span class="cmd">brew install node</span>
+
+<span class="comment"># バージョン確認</span>
+<span class="cmd">node --version</span>   <span class="comment"># v18以上であればOK</span></code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Claude Code をインストール</h3>
+            <div class="code-block">
+              <span class="lang">bash</span>
+              <code><span class="cmd">npm install -g @anthropic-ai/claude-code</span></code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>起動 → ログイン</h3>
+            <div class="code-block">
+              <span class="lang">bash</span>
+              <code><span class="cmd">claude</span>
+
+<span class="comment"># ブラウザが開いてAnthropicアカウントのログイン画面が表示される</span>
+<span class="comment"># claude.ai のアカウント（Pro以上）でログイン</span></code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Windows -->
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="font-size:24px">🪟</span>
+        <h3 style="font-size:18px;font-weight:700">Windows の場合</h3>
+      </div>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-text"><strong>前提：</strong>Windows の場合は <strong>WSL2（Windows Subsystem for Linux）</strong>を使って Linux 環境上で動かす方法が最も安定しています。Powershell から直接でも動きますが、自動化スクリプトなどは WSL2 推奨。</div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>WSL2 + Ubuntu をセットアップ</h3>
+            <p>PowerShell を管理者権限で開いて実行：</p>
+            <div class="code-block">
+              <span class="lang">PowerShell</span>
+              <code><span class="cmd">wsl --install</span>
+<span class="comment"># 再起動後、Microsoft Store から Ubuntu をインストール</span></code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Ubuntu（WSL2）内で Node.js をインストール</h3>
+            <div class="code-block">
+              <span class="lang">bash (WSL2)</span>
+              <code><span class="cmd">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</span>
+<span class="cmd">sudo apt-get install -y nodejs</span>
+<span class="cmd">node --version</span>   <span class="comment"># v20以上を確認</span></code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Claude Code をインストール・起動</h3>
+            <div class="code-block">
+              <span class="lang">bash (WSL2)</span>
+              <code><span class="cmd">npm install -g @anthropic-ai/claude-code</span>
+<span class="cmd">claude</span>
+<span class="comment"># ブラウザが開いてログイン画面が表示される</span></code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h3>（オプション）Windows Terminal を使うと快適</h3>
+            <p>Microsoft Store から <strong>Windows Terminal</strong> をインストールすると、WSL2 の操作が格段に快適になります。タブ切り替え、フォント設定、色テーマなどをカスタマイズできます。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="callout callout-tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-text"><strong>必要なプラン：</strong>Claude Code は <strong>Claude Pro（月$20）以上</strong>のプランが必要です。最大限に使うなら Max プランも検討を。APIキーを使う方法もありますが、Pro/Max プランのほうが使いやすいです。</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICKSTART -->
+<section class="section" id="quickstart">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Step 2</div>
+      <div class="section-title">はじめての会話</div>
+      <div class="section-subtitle">起動後にできること・使い方の基本</div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:32px">
+      <div class="card">
+        <div class="card-icon purple">💬</div>
+        <h3>ターミナルで会話する</h3>
+        <p>作業したいフォルダに移動してから <code class="inline">claude</code> を起動。そのフォルダのコードや資料を読み込んで、作業の文脈を理解した上で会話できます。</p>
+        <div class="code-block" style="margin-top:12px">
+          <code><span class="comment"># プロジェクトフォルダに移動してから起動</span>
+<span class="cmd">cd ~/work/myproject</span>
+<span class="cmd">claude</span></code>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon cyan">⌨️</div>
+        <h3>基本的なショートカット</h3>
+        <p style="margin-bottom:10px">チャット画面での操作：</p>
+        <table>
+          <tr><td><code class="inline">Enter</code></td><td style="font-size:13px;color:var(--mid)">送信</td></tr>
+          <tr><td><code class="inline">Shift+Enter</code></td><td style="font-size:13px;color:var(--mid)">改行</td></tr>
+          <tr><td><code class="inline">Ctrl+C</code></td><td style="font-size:13px;color:var(--mid)">中断</td></tr>
+          <tr><td><code class="inline">/</code></td><td style="font-size:13px;color:var(--mid)">スラッシュコマンド一覧</td></tr>
+          <tr><td><code class="inline">/clear</code></td><td style="font-size:13px;color:var(--mid)">会話をリセット</td></tr>
+          <tr><td><code class="inline">/exit</code></td><td style="font-size:13px;color:var(--mid)">終了</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-icon">✨</div>
+      <div class="callout-text"><strong>Auto モードとは：</strong>Claude Code には<strong>「許可を求めずに自律実行するモード」</strong>があります。<code class="inline">/auto</code> で切り替え可能。ファイルの読み書き・コマンド実行を自動でやってくれます（最初は通常モードで操作を確認しながら使うのが安心）。</div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMORY -->
+<section class="section" id="memory">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 1</div>
+      <div class="section-title">Memory システム</div>
+      <div class="section-subtitle">Claude Code は会話をまたいで「記憶」できる</div>
+    </div>
+
+    <div class="concept-card" style="margin-bottom:24px">
+      <div class="concept-header" style="background:rgba(124,58,237,0.04)">
+        <div class="concept-emoji">🧠</div>
+        <div>
+          <h3>Memory とは何か</h3>
+          <p>通常のAIは会話が終わるとすべて忘れます。Claude Code のMemoryは、重要な情報をファイルとして永続保存し、次のセッションでも自動的に読み込みます。</p>
+        </div>
+      </div>
+      <div class="concept-body">
+        <div class="grid-2">
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">保存先</h4>
+            <div class="code-block">
+              <code><span class="comment"># Mac</span>
+~/.claude/projects/[プロジェクト]/memory/
+  ├── MEMORY.md        <span class="comment"># インデックス（自動ロード）</span>
+  ├── user_profile.md  <span class="comment"># ユーザー情報</span>
+  ├── feedback_xxx.md  <span class="comment"># フィードバック記録</span>
+  └── reference_xxx.md <span class="comment"># 参照情報</span></code>
+            </div>
+          </div>
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">4つのメモリタイプ</h4>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="badge badge-purple">user</span>
+                <span style="font-size:13px;color:var(--mid)">ユーザーの役割・好み・知識</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="badge badge-green">feedback</span>
+                <span style="font-size:13px;color:var(--mid)">「こうしてほしい」指示の記録</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="badge badge-blue">project</span>
+                <span style="font-size:13px;color:var(--mid)">進行中の業務・意思決定</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="badge badge-yellow">reference</span>
+                <span style="font-size:13px;color:var(--mid)">外部リソースへのポインタ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">メモリファイルの構造</h4>
+        <div class="code-block">
+          <span class="lang">markdown</span>
+          <code><span class="comment">---</span>
+<span class="key">name</span><span class="comment">:</span> <span class="str">フィードバック：コードはコメントを最小限にする</span>
+<span class="key">description</span><span class="comment">:</span> <span class="str">コードコメントの指針。コード作成時に必ず参照。</span>
+<span class="key">type</span><span class="comment">:</span> <span class="str">feedback</span>
+<span class="comment">---</span>
+
+コード中のコメントは原則不要。変数名・関数名で意味が伝わるように書く。
+<span class="comment">**Why:**</span> 「コメントがないほうが読みやすい」との好み。
+<span class="comment">**How to apply:**</span> コード生成時にコメントを入れない。</code>
+        </div>
+
+        <div class="callout callout-tip" style="margin-top:16px">
+          <div class="callout-icon">💡</div>
+          <div class="callout-text"><strong>使い方：</strong>会話中に「〇〇を覚えておいて」と言うだけで自動的にメモリファイルに保存されます。次回のセッションから自動的に読み込まれ、前回の指示を繰り返す必要がなくなります。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLAUDE.MD -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 1b</div>
+      <div class="section-title">CLAUDE.md — 常時読み込まれる指示書</div>
+      <div class="section-subtitle">すべてのセッションに適用される「AIへの取扱説明書」</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <p style="color:var(--mid);margin-bottom:16px"><code class="inline">~/.claude/CLAUDE.md</code> に書いた内容は、Claude Code を起動するたびに必ず読み込まれます。「自分のことを常に知っておいてほしいこと」をここに書きます。</p>
+        <div class="code-block">
+          <span class="lang">markdown（~/.claude/CLAUDE.md）</span>
+          <code><span class="comment"># 自分のプロフィール</span>
+- 名前：山田太郎（〇〇株式会社 代表取締役）
+- 目標：営業効率を3倍にする
+
+<span class="comment">## よく使うフォルダ</span>
+- 業務資料：~/work/docs/
+- スクリプト：~/work/scripts/
+
+<span class="comment">## 行動原則</span>
+- コードにコメントは入れない
+- 返答は短く要点のみ
+- 変更前に必ず確認する</code>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:16px">CLAUDE.md に書くべき内容</h4>
+        <div class="steps">
+          <div class="step" style="padding:16px">
+            <div class="step-num" style="width:32px;height:32px;font-size:13px">1</div>
+            <div class="step-content">
+              <h3 style="font-size:14px">自己紹介・役割・目標</h3>
+              <p>Claudeが「誰に対して答えているか」を理解させる</p>
+            </div>
+          </div>
+          <div class="step" style="padding:16px">
+            <div class="step-num" style="width:32px;height:32px;font-size:13px">2</div>
+            <div class="step-content">
+              <h3 style="font-size:14px">よく使うパスやプロジェクト構成</h3>
+              <p>ファイルの場所を毎回説明しなくて済む</p>
+            </div>
+          </div>
+          <div class="step" style="padding:16px">
+            <div class="step-num" style="width:32px;height:32px;font-size:13px">3</div>
+            <div class="step-content">
+              <h3 style="font-size:14px">行動ルール・禁止事項</h3>
+              <p>「〇〇はしないで」「必ず〇〇する」などの繰り返し指示をまとめる</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 2</div>
+      <div class="section-title">Skills（スラッシュコマンド）</div>
+      <div class="section-subtitle">繰り返し使う「作業テンプレート」を1コマンドで呼び出す</div>
+    </div>
+
+    <div class="concept-card" style="margin-bottom:24px">
+      <div class="concept-header" style="background:rgba(6,182,212,0.04)">
+        <div class="concept-emoji">⚡</div>
+        <div>
+          <h3>Skills とは何か</h3>
+          <p>毎回同じ長いプロンプトを書く代わりに、<code class="inline">/skill名</code> と入力するだけで複雑な作業を実行できる仕組み。チームで共有することも可能。</p>
+        </div>
+      </div>
+      <div class="concept-body">
+        <div class="grid-2">
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">Skill ファイルの場所</h4>
+            <div class="code-block">
+              <code><span class="comment"># グローバル（全プロジェクトで使える）</span>
+~/.claude/skills/my-skill.md
+
+<span class="comment"># プロジェクト専用</span>
+.claude/skills/my-skill.md</code>
+            </div>
+          </div>
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">呼び出し方</h4>
+            <div class="code-block">
+              <code><span class="comment"># チャットに入力するだけ</span>
+<span class="cmd">/digest 朝版</span>
+<span class="cmd">/sns</span>
+<span class="cmd">/review</span>
+<span class="cmd">/x-post</span></code>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">Skill ファイルの書き方</h4>
+        <div class="code-block">
+          <span class="lang">markdown（~/.claude/skills/morning-report.md）</span>
+          <code><span class="comment">---</span>
+<span class="key">name</span><span class="comment">:</span> <span class="str">morning-report</span>
+<span class="key">description</span><span class="comment">:</span> <span class="str">毎朝の業務サマリーを生成する</span>
+<span class="comment">---</span>
+
+以下の手順で今日の業務サマリーを作成してください：
+
+1. ~/work/tasks/today.md を読み込む
+2. 昨日の完了タスクを確認する（git logで）
+3. 今日やるべきことを優先度順に整理する
+4. Slackに投稿できる形式でサマリーを出力する
+
+出力形式：
+- 3行以内で要点をまとめる
+- 絵文字は使わない</code>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">実際に使っているスキル例</h3>
+    <div class="grid-3">
+      <div class="card cyan">
+        <div class="card-icon"><span style="font-size:24px">📱</span></div>
+        <h3>/sns</h3>
+        <p>SNSのエンゲージメント分析を実行。投稿パフォーマンスをまとめてレポート化。</p>
+      </div>
+      <div class="card purple">
+        <div class="card-icon"><span style="font-size:24px">📰</span></div>
+        <h3>/digest</h3>
+        <p>朝版・夕版のニュースダイジェストを生成。業界トレンドを自動収集して要約。</p>
+      </div>
+      <div class="card green">
+        <div class="card-icon"><span style="font-size:24px">🐦</span></div>
+        <h3>/x-post</h3>
+        <p>X（Twitter）の投稿案を自動生成。プロンプトテンプレートに沿って複数案を提示。</p>
+      </div>
+      <div class="card yellow">
+        <div class="card-icon"><span style="font-size:24px">🎓</span></div>
+        <h3>/training</h3>
+        <p>研修コンテンツを自動生成。テーマを渡すと資料の構成と内容を一気に作成。</p>
+      </div>
+      <div class="card purple">
+        <div class="card-icon"><span style="font-size:24px">📝</span></div>
+        <h3>/note</h3>
+        <p>note記事の下書きを生成。テーマを渡すと構成から本文まで一気に作成。</p>
+      </div>
+      <div class="card cyan">
+        <div class="card-icon"><span style="font-size:24px">💼</span></div>
+        <h3>/consulting</h3>
+        <p>コンサルクライアントのブリーフを自動作成。商談前の事前調査を効率化。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section class="section" id="rules">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 3</div>
+      <div class="section-title">Rules（ルール設定）</div>
+      <div class="section-subtitle">ドメインごとに異なる「判断基準」をAIに教える</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-header" style="background:rgba(16,185,129,0.04)">
+        <div class="concept-emoji">📋</div>
+        <div>
+          <h3>Rules とは何か</h3>
+          <p>Memory がユーザー情報を記憶するのに対し、Rules は「このカテゴリの仕事はこう動け」という業務ルールを定義します。</p>
+        </div>
+      </div>
+      <div class="concept-body">
+        <div class="grid-2">
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">ファイル構造</h4>
+            <div class="code-block">
+              <code>~/.claude/rules/
+  ├── content.md    <span class="comment"># SNS・コンテンツ作成ルール</span>
+  ├── ops.md        <span class="comment"># 業務・運用系ルール</span>
+  ├── consulting.md <span class="comment"># 営業・提案系ルール</span>
+  └── dev.md        <span class="comment"># 開発・コードルール</span></code>
+            </div>
+          </div>
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">書き方の例</h4>
+            <div class="code-block">
+              <span class="lang">markdown（rules/content.md）</span>
+              <code><span class="comment"># SNSコンテンツルール</span>
+
+<span class="comment">## トーン</span>
+- 一人称は「私」
+- 体言止めを多用する
+- 専門用語は使わず平易な言葉で
+
+<span class="comment">## X投稿の禁止事項</span>
+- 絵文字を3個以上使わない
+- 140文字を超えるスレッドは3連投まで
+
+<span class="comment">## note記事</span>
+- 見出しは最大H2まで
+- 冒頭3行で結論を述べる</code>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout-tip" style="margin-top:16px">
+          <div class="callout-icon">💡</div>
+          <div class="callout-text"><strong>フィードバックループが重要：</strong>Claudeが間違った動きをしたとき、「なぜ修正が必要だったか」を分析してRulesに追記する習慣をつけると、同じミスが繰り返されなくなります。<br>→ <strong>気づき → ルール追記 → 定期的な見直し</strong>のサイクルが品質を上げる鍵。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOOKS -->
+<section class="section" id="hooks">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 4</div>
+      <div class="section-title">Hooks（自動トリガー）</div>
+      <div class="section-subtitle">特定のイベントで自動的にスクリプトを実行する</div>
+    </div>
+
+    <div class="concept-card" style="margin-bottom:24px">
+      <div class="concept-header" style="background:rgba(245,158,11,0.04)">
+        <div class="concept-emoji">🔗</div>
+        <div>
+          <h3>Hooks とは何か</h3>
+          <p>「Claudeが返答したとき」「ファイルを書き込む前」など、特定のタイミングでシェルコマンドを自動実行する仕組み。通知・ログ記録・セキュリティチェックなどに使います。</p>
+        </div>
+      </div>
+      <div class="concept-body">
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">タイミングの種類</h4>
+        <div class="table-wrap">
+          <table>
+            <tr><th>タイミング</th><th>説明</th><th>代表的な使いみち</th></tr>
+            <tr>
+              <td><span class="badge badge-green">Stop</span></td>
+              <td style="font-size:13px">Claudeが返答完了したとき</td>
+              <td style="font-size:13px">完了通知・セッションログ記録</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">PreToolUse</span></td>
+              <td style="font-size:13px">ツール（ファイル書込など）実行前</td>
+              <td style="font-size:13px">APIキー漏洩チェック・確認</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-yellow">PostToolUse</span></td>
+              <td style="font-size:13px">ツール実行後</td>
+              <td style="font-size:13px">自動テスト・差分記録</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-purple">PreCompact</span></td>
+              <td style="font-size:13px">コンテキスト圧縮前</td>
+              <td style="font-size:13px">会話ログのバックアップ</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid-2">
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">Hooksの設定（settings.json）</h4>
+            <div class="code-block">
+              <span class="lang">json（~/.claude/settings.json）</span>
+              <code>{
+  <span class="key">"hooks"</span>: {
+    <span class="key">"Stop"</span>: [
+      {
+        <span class="key">"type"</span>: <span class="str">"command"</span>,
+        <span class="key">"command"</span>: <span class="str">"bash ~/.claude/hooks/notify.sh"</span>
+      }
+    ],
+    <span class="key">"PreToolUse"</span>: [
+      {
+        <span class="key">"matcher"</span>: <span class="str">"Write"</span>,
+        <span class="key">"hooks"</span>: [{
+          <span class="key">"type"</span>: <span class="str">"command"</span>,
+          <span class="key">"command"</span>: <span class="str">"bash ~/.claude/hooks/secret-check.sh"</span>
+        }]
+      }
+    ]
+  }
+}</code>
+            </div>
+          </div>
+          <div>
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px">実際のフックスクリプト例（Mac）</h4>
+            <div class="code-block">
+              <span class="lang">bash（notify.sh）</span>
+              <code><span class="comment">#!/bin/bash</span>
+<span class="comment"># 作業完了をmacOSに通知する</span>
+<span class="cmd">osascript</span> -e <span class="str">'display notification "作業完了しました" with title "Claude Code" sound name "Glass"'</span></code>
+            </div>
+            <div class="code-block" style="margin-top:12px">
+              <span class="lang">bash（secret-check.sh）</span>
+              <code><span class="comment">#!/bin/bash</span>
+<span class="comment"># ファイルにAPIキーが含まれていたら書き込みを中断</span>
+if grep -qE <span class="str">'(sk-|AIza|AKIA)[A-Za-z0-9]+'</span> <span class="str">"$CLAUDE_TOOL_INPUT_PATH"</span> 2>/dev/null; then
+  echo <span class="str">"SECRET DETECTED"</span> >&2
+  exit 1
+fi</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-warn" style="margin-top:16px">
+          <div class="callout-icon">⚠️</div>
+          <div class="callout-text"><strong>Windows（WSL2）での通知：</strong>macOSの <code class="inline">osascript</code> は使えません。Windows では <code class="inline">powershell.exe -Command "..."</code> を使って Windows 通知を出すか、<code class="inline">echo</code> でターミナルに表示するだけでもOKです。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MCP -->
+<section class="section" id="mcp">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 5</div>
+      <div class="section-title">MCP（外部サービス連携）</div>
+      <div class="section-subtitle">Claude から Slack・Gmail・カレンダー・会計ツールを直接操作する</div>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <p style="color:var(--mid);margin-bottom:16px">MCP（Model Context Protocol）は、Claude に外部サービスの「ツール」を追加する仕組みです。Slack にメッセージを送ったり、Googleカレンダーを読んだりを、Claude の会話の中で直接できるようになります。</p>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:32px">
+      <div class="card cyan">
+        <div class="card-icon"><span style="font-size:24px">💬</span></div>
+        <h3>Slack MCP</h3>
+        <p>チャンネル読み書き・DM送信・メッセージ検索。分析レポートをSlackに自動投稿するのに活用。</p>
+        <div style="margin-top:12px"><span class="badge badge-green">公式対応</span></div>
+      </div>
+      <div class="card green">
+        <div class="card-icon"><span style="font-size:24px">📧</span></div>
+        <h3>Gmail MCP</h3>
+        <p>メール検索・下書き作成・ラベル付け。返信が必要なメールを自動検知して下書きを作成。</p>
+        <div style="margin-top:12px"><span class="badge badge-green">公式対応</span></div>
+      </div>
+      <div class="card purple">
+        <div class="card-icon"><span style="font-size:24px">📅</span></div>
+        <h3>Google Calendar MCP</h3>
+        <p>予定の読み書き・作成・更新。商談相手の情報をカレンダーのメモ欄に自動書き込み。</p>
+        <div style="margin-top:12px"><span class="badge badge-green">公式対応</span></div>
+      </div>
+      <div class="card yellow">
+        <div class="card-icon"><span style="font-size:24px">📊</span></div>
+        <h3>Notion MCP</h3>
+        <p>ページ作成・データベース操作・検索。会議録や分析結果をNotionに自動保存。</p>
+        <div style="margin-top:12px"><span class="badge badge-green">公式対応</span></div>
+      </div>
+      <div class="card red">
+        <div class="card-icon"><span style="font-size:24px">💹</span></div>
+        <h3>会計ツール MCP</h3>
+        <p>MoneyForward・freee等の会計データを取得して自動分析。月次レポートをSlackへ自動配信。</p>
+        <div style="margin-top:12px"><span class="badge badge-blue">要セットアップ</span></div>
+      </div>
+      <div class="card blue">
+        <div class="card-icon"><span style="font-size:24px">🔧</span></div>
+        <h3>その他多数</h3>
+        <p>Asana・HubSpot・Linear・Box・Intercom・Canva等、主要SaaSはほぼ対応済み。</p>
+        <div style="margin-top:12px"><span class="badge badge-purple">拡張可能</span></div>
+      </div>
+    </div>
+
+    <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">MCPの設定方法（settings.json）</h4>
+    <div class="code-block">
+      <span class="lang">json（~/.claude/settings.json）</span>
+      <code>{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"slack"</span>: {
+      <span class="key">"type"</span>: <span class="str">"http"</span>,
+      <span class="key">"url"</span>: <span class="str">"https://mcp.slack.com/..."</span>,
+      <span class="key">"headers"</span>: { <span class="key">"Authorization"</span>: <span class="str">"Bearer xoxb-..."</span> }
+    },
+    <span class="key">"moneyforward"</span>: {
+      <span class="key">"type"</span>: <span class="str">"http"</span>,
+      <span class="key">"url"</span>: <span class="str">"https://beta.mcp.developers.biz.moneyforward.com/mcp/ca/v3"</span>
+    }
+  }
+}</code>
+    </div>
+    <div class="callout callout-tip" style="margin-top:16px">
+      <div class="callout-icon">💡</div>
+      <div class="callout-text"><strong>claude.ai の Connectors：</strong>Web版 claude.ai の Settings → Connectors から GUI で接続できるサービスもあります（Slack・Gmail・Googleカレンダーなど）。こちらは設定ファイル不要で簡単です。</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="section" id="security">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Core Concept 6</div>
+      <div class="section-title">セキュリティ設定</div>
+      <div class="section-subtitle">強力なツールだからこそ、権限の管理が重要</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">ブロックすべき操作（deny）</h4>
+        <div class="card" style="padding:16px">
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-red">DENY</span></div>
+            <div class="sec-content">
+              <h4>~/.ssh/** / ~/.aws/** の読み取り</h4>
+              <p>SSHキー・AWSクレデンシャルの漏洩を防ぐ</p>
+            </div>
+          </div>
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-red">DENY</span></div>
+            <div class="sec-content">
+              <h4>~/.bashrc / ~/.zshrc の編集</h4>
+              <p>シェル設定の無断書き換えを防ぐ</p>
+            </div>
+          </div>
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-red">DENY</span></div>
+            <div class="sec-content">
+              <h4>settings.json 自体の編集</h4>
+              <p>AIが自分の権限設定を書き換えることを防ぐ</p>
+            </div>
+          </div>
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-red">DENY</span></div>
+            <div class="sec-content">
+              <h4>nc（netcat）/ wget</h4>
+              <p>不要なネットワーク操作ツールをブロック</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">明示的に許可する操作（allow）</h4>
+        <div class="card" style="padding:16px">
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-green">ALLOW</span></div>
+            <div class="sec-content">
+              <h4>git 系コマンド全般</h4>
+              <p>開発作業の基本。push は都度確認を推奨</p>
+            </div>
+          </div>
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-green">ALLOW</span></div>
+            <div class="sec-content">
+              <h4>python3 / node / npm</h4>
+              <p>スクリプト実行・開発作業に必要</p>
+            </div>
+          </div>
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-green">ALLOW</span></div>
+            <div class="sec-content">
+              <h4>curl</h4>
+              <p>外部API呼び出しに必要。wgetはDENY推奨</p>
+            </div>
+          </div>
+          <div class="sec-row">
+            <div class="sec-status"><span class="badge badge-green">ALLOW</span></div>
+            <div class="sec-content">
+              <h4>ls / grep / ls 等の読み取り系</h4>
+              <p>コード探索・調査に必要な基本コマンド</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h4 style="font-size:16px;font-weight:700;margin-bottom:12px">セキュリティ設定の実装例</h4>
+    <div class="code-block">
+      <span class="lang">json（~/.claude/settings.json の一部）</span>
+      <code>{
+  <span class="key">"permissions"</span>: {
+    <span class="key">"deny"</span>: [
+      <span class="str">"Read(~/.ssh/**)"</span>,
+      <span class="str">"Read(~/.aws/**)"</span>,
+      <span class="str">"Read(~/.gnupg/**)"</span>,
+      <span class="str">"Edit(~/.bashrc)"</span>,
+      <span class="str">"Edit(~/.zshrc)"</span>,
+      <span class="str">"Edit(~/.claude/settings.json)"</span>,
+      <span class="str">"Bash(nc *)"</span>,
+      <span class="str">"Bash(wget *)"</span>
+    ],
+    <span class="key">"allow"</span>: [
+      <span class="str">"Bash(git *)"</span>,
+      <span class="str">"Bash(python3 *)"</span>,
+      <span class="str">"Bash(node *)"</span>,
+      <span class="str">"Bash(npm *)"</span>,
+      <span class="str">"Bash(curl *)"</span>
+    ]
+  }
+}</code>
+    </div>
+
+    <div class="callout callout-danger" style="margin-top:16px">
+      <div class="callout-icon">🛡️</div>
+      <div class="callout-text"><strong>APIキーの管理：</strong>APIキーは絶対にチャットに貼り付けないこと。代わりにファイルに書いてパスを伝える、または環境変数（<code class="inline">~/.zshrc</code> や <code class="inline">.env</code> ファイル）で管理する。</div>
+    </div>
+  </div>
+</section>
+
+<!-- AUTOMATION -->
+<section class="section" id="automation">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">実践編</div>
+      <div class="section-title">自動化の実例 7選</div>
+      <div class="section-subtitle">Claude Code + MCP で実現できる業務自動化パターン</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+      <!-- Auto 1 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(6,182,212,0.12)">📱</div>
+          <div class="auto-card-meta">
+            <h3>① SNS投稿案の自動生成</h3>
+            <p>プロンプト1つで、ターゲット別に最適化されたSNS投稿案を複数生成</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">📂 プロンプトテンプレ</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🤖 Claude分析・生成</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📝 複数投稿案</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🔍 レビュー・選択</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">Skillファイルにターゲット層・トーン・禁止ワード・投稿フォーマットを定義。<code class="inline">/x-post テーマ</code> と入力するだけで、複数のパターンを即座に提案。Typefully等の予約投稿ツールと連携すれば、承認 → 自動投稿まで一貫して自動化。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Skills</span>
+            <span class="tech-tag">CLAUDE.md</span>
+            <span class="tech-tag">Typefully API</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto 2 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(124,58,237,0.12)">🌍</div>
+          <div class="auto-card-meta">
+            <h3>② 組織マネジメントナレッジの自動収集・Slack配信</h3>
+            <p>世界中のHR・組織マネジメント情報を毎朝自動収集し、要約をSlackへ配信</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">⏰ スケジューラ（毎朝）</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🌐 Web検索・収集</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📋 要約・整形</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">💬 Slack配信</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">macOS の launchd（Windowsならタスクスケジューラ）で毎朝自動実行。Claude が指定テーマで最新情報を収集・要約し、Slack MCP でチャンネルに投稿。<code class="inline">/digest 朝版</code> のSkillとして定義すれば手動実行も可能。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Skills (/digest)</span>
+            <span class="tech-tag">Slack MCP</span>
+            <span class="tech-tag">launchd / タスクスケジューラ</span>
+            <span class="tech-tag">WebSearch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto 3 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(16,185,129,0.12)">📅</div>
+          <div class="auto-card-meta">
+            <h3>③ 商談相手の自動ブリーフィング生成</h3>
+            <p>翌日の商談相手をGoogleで調査し、カレンダーのメモ欄に自動書き込み</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">⏰ 毎朝7時自動実行</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📅 翌日の商談を検索</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🔍 会社・人物調査</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📝 カレンダーに書込</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">💬 Slack通知</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">Google Apps Script（GAS）+ Gemini API で構築。予定名に「商談」「MTG」などのキーワードが入っている予定を自動検知し、会社情報・担当者のSNS・最近のニュースをまとめてカレンダーのメモ欄に書き込む。当日の朝には既に情報が揃っている状態になる。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Google Apps Script</span>
+            <span class="tech-tag">Gemini API</span>
+            <span class="tech-tag">Google Calendar</span>
+            <span class="tech-tag">Slack通知</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto 4 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(239,68,68,0.12)">💹</div>
+          <div class="auto-card-meta">
+            <h3>④ 財務分析の自動化・Slack配信</h3>
+            <p>会計ツールの月次データを自動取得し、AI分析レポートをSlackへ毎月配信</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">⏰ 毎月1日自動実行</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">💰 会計MCP でデータ取得</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📊 Claude が分析</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">💬 Slack DM に投稿</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">MoneyForward・freee等の公式MCPサーバーを使って、前々月の試算表を自動取得。売上・費用・営業利益の推移をClaudeが分析してコメントを付け、Slack DM に自動投稿。経理担当者がいなくても毎月の財務状況を把握できる。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">会計ツール MCP</span>
+            <span class="tech-tag">Slack MCP</span>
+            <span class="tech-tag">launchd / タスクスケジューラ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto 5 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(245,158,11,0.12)">👥</div>
+          <div class="auto-card-meta">
+            <h3>⑤ 顧客管理（CRM）ツールの構築</h3>
+            <p>スプレッドシートをベースに、AIがCRMの優先度判定・フォローアップ提案を自動化</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">📊 スプレッドシート</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🤖 Claude分析</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🎯 優先度判定</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📋 アクション提案</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">Googleスプレッドシートの顧客リストをClaudeが読み込み、ステータス・最終接触日・興味関心をもとに「今週フォローすべき顧客」を優先度順にリストアップ。専用のスクリプトでデータを取得し、Claudeに渡すだけでCRMとして機能する。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Google Sheets API</span>
+            <span class="tech-tag">Python スクリプト</span>
+            <span class="tech-tag">Claude分析</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto 6 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(59,130,246,0.12)">📊</div>
+          <div class="auto-card-meta">
+            <h3>⑥ アンケート・サーベイ分析システム</h3>
+            <p>組織サーベイの回答をClaudeが分析し、エンゲージメント課題を可視化</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">📝 サーベイ回答</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">🤖 Claude分析</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📈 レポート生成</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">📊 可視化・提案</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">Webアプリとして構築し、アンケート結果のCSVやJSONをアップロードするだけでClaudeが分析・レポートを自動生成。定量スコアの可視化と、自由記述の定性分析を両方こなし、改善施策まで提案する。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Next.js / Python</span>
+            <span class="tech-tag">Claude API</span>
+            <span class="tech-tag">データ可視化</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto 7 -->
+      <div class="auto-card">
+        <div class="auto-card-header">
+          <div class="auto-card-icon" style="background:rgba(16,185,129,0.12)">🏢</div>
+          <div class="auto-card-meta">
+            <h3>⑦ Google Workspace 連携で日常業務を効率化</h3>
+            <p>Gmail・カレンダー・ドライブをClaude から直接操作し、日常業務を半自動化</p>
+          </div>
+        </div>
+        <div class="auto-card-body">
+          <div class="flow">
+            <div class="flow-item">📧 Gmail（返信下書き）</div>
+            <div class="flow-arrow">+</div>
+            <div class="flow-item">📅 Calendar（予定管理）</div>
+            <div class="flow-arrow">+</div>
+            <div class="flow-item">📁 Drive（資料検索）</div>
+          </div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:12px">Gmail MCPでは「6時間以上返信していないメール」を検知して下書きを自動生成。Googleカレンダー MCPでは「来週の空き時間を探して日程調整のメール案を作って」が自然言語で指示できる。Googleドライブ MCPでは社内資料をClaudeが横断検索して回答できる。</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Gmail MCP</span>
+            <span class="tech-tag">Google Calendar MCP</span>
+            <span class="tech-tag">Google Drive MCP</span>
+            <span class="tech-tag">Claude Agents</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CURSOR -->
+<section class="section" id="cursor">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">開発環境</div>
+      <div class="section-title">Cursor IDE との連携</div>
+      <div class="section-subtitle">コードエディタとClaude Code を組み合わせた最強の開発環境</div>
+    </div>
+
+    <p style="color:var(--mid);margin-bottom:24px;max-width:640px">Cursor は AI 機能を内蔵したコードエディタ（VS Code ベース）。Claude Code（ターミナル）と Cursor（エディタ）を組み合わせることで、コーディング → レビュー → テスト → 修正のサイクルを高速化できます。</p>
+
+    <div class="cursor-flow" style="margin-bottom:32px">
+      <div class="cursor-step">
+        <div class="icon">💡</div>
+        <h4>Cursor で設計</h4>
+        <p>チャット画面で「こういう機能を作りたい」と相談しながらコードを書く</p>
+      </div>
+      <div class="cursor-step">
+        <div class="icon">⚡</div>
+        <h4>Claude Code でタスク実行</h4>
+        <p>ターミナルで claude を起動し、ファイル操作・テスト実行・デプロイを自動化</p>
+      </div>
+      <div class="cursor-step">
+        <div class="icon">🔍</div>
+        <h4>エージェントでレビュー</h4>
+        <p>code-reviewer・security-reviewer エージェントでコード品質を自動チェック</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">使い分けのポイント</h4>
+        <div class="table-wrap">
+          <table>
+            <tr><th>作業</th><th>使うツール</th></tr>
+            <tr><td style="font-size:13px">コードを書く・修正する</td><td style="font-size:13px"><span class="badge badge-blue">Cursor</span></td></tr>
+            <tr><td style="font-size:13px">ファイル・フォルダの操作</td><td style="font-size:13px"><span class="badge badge-purple">Claude Code</span></td></tr>
+            <tr><td style="font-size:13px">settings.json の編集</td><td style="font-size:13px"><span class="badge badge-blue">Cursor</span></td></tr>
+            <tr><td style="font-size:13px">スクリプト実行・自動化</td><td style="font-size:13px"><span class="badge badge-purple">Claude Code</span></td></tr>
+            <tr><td style="font-size:13px">コードのレビュー・説明</td><td style="font-size:13px"><span class="badge badge-green">どちらでも</span></td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">Cursor のセットアップ</h4>
+        <div class="steps">
+          <div class="step" style="padding:14px">
+            <div class="step-num" style="width:28px;height:28px;font-size:12px;border-radius:8px">1</div>
+            <div class="step-content">
+              <h3 style="font-size:13px">cursor.com からダウンロード（Mac / Windows 両対応）</h3>
+            </div>
+          </div>
+          <div class="step" style="padding:14px">
+            <div class="step-num" style="width:28px;height:28px;font-size:12px;border-radius:8px">2</div>
+            <div class="step-content">
+              <h3 style="font-size:13px">Settings → Models で claude-sonnet-4-5 等を選択</h3>
+            </div>
+          </div>
+          <div class="step" style="padding:14px">
+            <div class="step-num" style="width:28px;height:28px;font-size:12px;border-radius:8px">3</div>
+            <div class="step-content">
+              <h3 style="font-size:13px">プロジェクトに .cursorrules ファイルを置いてルールを定義</h3>
+            </div>
+          </div>
+          <div class="step" style="padding:14px">
+            <div class="step-num" style="width:28px;height:28px;font-size:12px;border-radius:8px">4</div>
+            <div class="step-content">
+              <h3 style="font-size:13px">内蔵ターミナルから <code class="inline">claude</code> コマンドで Claude Code も起動できる</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-warn" style="margin-top:24px">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-text"><strong>Cursor内ターミナル vs ターミナルアプリ：</strong>どちらも同じコマンドが使えますが、<strong>Cursor内のターミナルと通常のターミナルアプリは別物</strong>です。混同しないよう、作業場所を意識してください。長い処理や自動化スクリプトはターミナルアプリ（またはWSL2）で実行するのが安定します。</div>
+    </div>
+  </div>
+</section>
+
+<!-- REMOTE AGENTS -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">発展編</div>
+      <div class="section-title">リモートエージェント（無人実行）</div>
+      <div class="section-subtitle">PCを閉じていても24時間働かせる仕組み</div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-icon purple"><span style="font-size:24px">🤖</span></div>
+        <h3>Claude Code Remote</h3>
+        <p>claude.ai の Web版から「スケジュール実行」を設定できます。毎時・毎日・毎週など、指定したプロンプトを自動で実行し続けます。PCが起動していなくてもクラウドで動きます。</p>
+        <div class="code-block" style="margin-top:12px">
+          <code><span class="comment"># /schedule コマンドで設定</span>
+<span class="cmd">/schedule</span>
+<span class="comment"># → スケジュール設定画面が開く</span></code>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon cyan"><span style="font-size:24px">⏰</span></div>
+        <h3>macOS launchd / Windowsタスクスケジューラ</h3>
+        <p>PCが起動している間に定期実行する方法。claudeコマンドをシェルスクリプトから呼び出すことで完全自動化できます。</p>
+        <div class="code-block" style="margin-top:12px">
+          <code><span class="comment"># Mac: launchd plist で毎朝7時に実行</span>
+<span class="key">StartCalendarInterval</span>:
+  <span class="key">Hour</span>: <span class="val">7</span>
+  <span class="key">Minute</span>: <span class="val">0</span>
+
+<span class="comment"># スクリプト内で claude コマンドを呼ぶ</span>
+<span class="cmd">claude --dangerously-skip-permissions -p "..."</span></code>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-danger">
+      <div class="callout-icon">🛡️</div>
+      <div class="callout-text"><strong>--dangerously-skip-permissions について：</strong>無人実行時に許可プロンプトをスキップするフラグです。セキュリティ設定（deny/allow）をしっかり設定した上で使ってください。本番データや外部サービスへの書き込みを伴う自動化では特に注意が必要です。</div>
+    </div>
+  </div>
+</section>
+
+<!-- GETTING STARTED CHECKLIST -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">まとめ</div>
+      <div class="section-title">はじめの一歩 チェックリスト</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">Week 1：基本操作をマスター</h4>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>Node.js と Claude Code をインストール</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>claude.ai のアカウント（Pro以上）でログイン</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>CLAUDE.md に自己紹介・ルールを書く</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>セキュリティ設定（deny/allow）を追加する</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>完了通知フック（Stop hook）を設定する</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px">Week 2-4：自動化を構築</h4>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>よく使う作業を Skill に定義する</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>Slack MCP を接続してメッセージ送信を試す</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>Gmail / Googleカレンダー MCP を設定する</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>1つ定期実行スクリプトを作る（ダイジストなど）</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>Rules にフィードバックを蓄積し始める</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="section">
+  <div class="container">
+    <div class="highlight-box">
+      <h2>Claude Code は「使うAI」から「働くAI」へ</h2>
+      <p style="margin-bottom:8px">毎回同じプロンプトを打つのをやめ、AIに仕事の文脈・ルール・記憶を持たせることで<br>あなたの業務は段階的に自動化されていきます。</p>
+      <p style="opacity:0.7;font-size:13px">最初の1週間は設定に時間をかける価値があります。その後は毎日時間が返ってきます。</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p style="margin-bottom:8px">Claude Code 完全ガイドブック</p>
+  <p style="font-size:12px;color:var(--dark3)">Powered by <a href="https://claude.ai/code">Claude Code</a> — Anthropic</p>
+</footer>
+
+</body>
+</html>
