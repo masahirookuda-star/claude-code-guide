@@ -2,264 +2,234 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Claude Code 実装手順書 v2</title>
+<title>Claude Code 実装手順書</title>
 <style>
-:root{
-  --p:#7C3AED;--pl:#A78BFA;--a:#06B6D4;--g:#10B981;--y:#F59E0B;--r:#EF4444;
-  --d:#0F172A;--d2:#1E293B;--d3:#334155;--m:#64748B;--l:#94A3B8;
-  --b:#E2E8F0;--bg:#F8FAFC;--w:#fff;--cb:#1E293B;
-}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;background:#fff;color:var(--d);font-size:10pt;line-height:1.6;}
+body{font-family:-apple-system,'Hiragino Sans',sans-serif;font-size:9pt;line-height:1.5;color:#0F172A;background:#fff;}
 
-/* ===== COVER ===== */
-.cover{background:var(--d);padding:48px 52px 40px;display:flex;flex-direction:column;gap:16px;page-break-after:always;position:relative;overflow:hidden;}
-.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 40% 40%,rgba(124,58,237,.35) 0%,transparent 65%);}
-.cover-eyebrow{font-size:9pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--pl);position:relative;}
-.cover h1{font-size:34pt;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.1;position:relative;}
+/* ── COVER ── */
+.cover{background:#0F172A;padding:32px 40px 28px;color:#fff;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%,rgba(124,58,237,.35),transparent 65%);}
+.cover-inner{position:relative;}
+.cover-eye{font-size:8pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A78BFA;margin-bottom:8px;}
+.cover h1{font-size:26pt;font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:8px;}
 .cover h1 em{font-style:normal;background:linear-gradient(135deg,#A78BFA,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.cover-desc{color:rgba(255,255,255,.5);font-size:11pt;position:relative;max-width:480px;}
-.cover-stats{display:flex;gap:32px;position:relative;margin-top:8px;}
-.cover-stat .n{font-size:20pt;font-weight:900;background:linear-gradient(135deg,#A78BFA,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
-.cover-stat .l{font-size:8pt;color:rgba(255,255,255,.4);}
+.cover-desc{color:rgba(255,255,255,.5);font-size:9.5pt;margin-bottom:16px;}
+.cover-stats{display:flex;gap:24px;}
+.cs-n{font-size:16pt;font-weight:900;background:linear-gradient(135deg,#A78BFA,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.cs-l{font-size:7.5pt;color:rgba(255,255,255,.4);}
 
-/* ===== TOC ===== */
-.toc{padding:36px 52px;page-break-after:always;}
-.toc h2{font-size:18pt;font-weight:900;margin-bottom:4px;}
-.toc-sub{color:var(--m);font-size:9.5pt;margin-bottom:20px;}
-.toc-group{margin-bottom:16px;}
-.toc-group-title{font-size:8pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--p);border-bottom:1px solid var(--b);padding-bottom:4px;margin-bottom:6px;}
-.toc-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dashed var(--b);}
-.toc-row:last-child{border-bottom:none;}
-.toc-badge{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:800;color:#fff;flex-shrink:0;}
-.toc-badge.gray{background:#475569;}
-.toc-title{font-size:10pt;font-weight:500;}
-.toc-sub-text{font-size:8.5pt;color:var(--m);}
+/* ── TOC ── */
+.toc{padding:16px 40px 12px;border-bottom:2px solid #E2E8F0;}
+.toc h2{font-size:12pt;font-weight:900;margin-bottom:6px;}
+.toc-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+.toc-g{margin-bottom:8px;}
+.toc-g-title{font-size:7pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7C3AED;border-bottom:1px solid #E2E8F0;padding-bottom:2px;margin-bottom:4px;}
+.toc-row{display:flex;align-items:baseline;gap:6px;padding:2px 0;}
+.tb{width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:inline-flex;align-items:center;justify-content:center;font-size:7.5pt;font-weight:800;color:#fff;flex-shrink:0;}
+.tb.g{background:#475569;}
+.toc-t{font-size:8.5pt;}
+.toc-s{font-size:7.5pt;color:#94A3B8;}
 
-/* ===== CH DIVIDER ===== */
-.ch-div{background:var(--d);padding:28px 52px;display:flex;align-items:flex-end;gap:20px;page-break-before:always;page-break-after:avoid;position:relative;overflow:hidden;}
-.ch-div::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0% 60%,rgba(124,58,237,.2) 0%,transparent 55%);}
-.ch-num{font-size:60pt;font-weight:900;color:rgba(255,255,255,.06);line-height:1;position:relative;}
+/* ── CHAPTER BANNER ── */
+.ch{background:#0F172A;padding:7px 40px;display:flex;align-items:center;gap:12px;margin-top:12px;position:relative;overflow:hidden;}
+.ch::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(124,58,237,.2),transparent);}
+.ch-n{font-size:28pt;font-weight:900;color:rgba(255,255,255,.07);line-height:1;position:relative;}
 .ch-info{position:relative;}
-.ch-label{font-size:8pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--pl);margin-bottom:4px;}
-.ch-div h2{font-size:20pt;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.2;}
-.ch-div p{color:rgba(255,255,255,.45);font-size:9.5pt;margin-top:4px;}
-.ch-time{position:absolute;bottom:20px;right:40px;font-size:8.5pt;color:rgba(255,255,255,.35);}
+.ch-label{font-size:7pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#A78BFA;}
+.ch h2{font-size:13pt;font-weight:900;color:#fff;letter-spacing:-.3px;}
+.ch-time{margin-left:auto;font-size:7.5pt;color:rgba(255,255,255,.35);position:relative;}
 
-/* ===== PAGE ===== */
-.page{padding:28px 52px;page-break-inside:avoid;}
-.page+.page{border-top:1px solid var(--b);}
+/* ── PAGE ── */
+.page{padding:10px 40px 8px;}
+.page+.page{border-top:1px solid #F1F5F9;}
 
 /* PAGE HEADER */
-.ph{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--b);}
-.ph-icon{width:34px;height:34px;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.ph h3{font-size:14pt;font-weight:800;letter-spacing:-.3px;}
-.ph .info{font-size:8pt;color:var(--m);}
+.ph{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid #E2E8F0;}
+.ph-icon{width:28px;height:28px;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.ph h3{font-size:11pt;font-weight:800;letter-spacing:-.3px;}
+.ph .info{font-size:7.5pt;color:#94A3B8;}
 
 /* STEP */
-.step{display:flex;gap:12px;margin-bottom:10px;padding:12px;border:1px solid var(--b);border-radius:10px;page-break-inside:avoid;}
-.sn{flex-shrink:0;width:26px;height:26px;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11pt;font-weight:800;color:#fff;}
-.sc h4{font-size:10.5pt;font-weight:700;margin-bottom:3px;}
-.sc p{font-size:9pt;color:var(--m);line-height:1.5;margin-bottom:4px;}
+.step{display:flex;gap:9px;margin-bottom:7px;padding:9px 10px;border:1px solid #E2E8F0;border-radius:8px;}
+.sn{flex-shrink:0;width:22px;height:22px;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9pt;font-weight:800;color:#fff;}
+.sc h4{font-size:9.5pt;font-weight:700;margin-bottom:2px;}
+.sc p{font-size:8.5pt;color:#64748B;line-height:1.45;margin-bottom:3px;}
 
 /* CODE */
-.cb{background:var(--cb);border-radius:8px;padding:10px 14px;margin:6px 0;position:relative;overflow:hidden;}
-.cb .lt{position:absolute;top:6px;right:10px;font-size:7.5pt;color:#475569;font-family:monospace;letter-spacing:.3px;text-transform:uppercase;}
-.cb code{font-family:'Menlo','Monaco','Courier New',monospace;font-size:9pt;color:#E2E8F0;white-space:pre-wrap;line-height:1.55;display:block;}
-.c{color:#475569;}.k{color:#A78BFA;}.v{color:#34D399;}.s{color:#FCD34D;}.cmd{color:#60A5FA;}.hi{color:#F472B6;}
+.cb{background:#1E293B;border-radius:7px;padding:8px 11px;margin:5px 0;}
+.cb .lt{font-size:7pt;color:#475569;font-family:monospace;float:right;margin-bottom:2px;}
+.cb code{font-family:'Menlo','Monaco','Courier New',monospace;font-size:8.5pt;color:#E2E8F0;white-space:pre-wrap;line-height:1.5;display:block;clear:both;}
+.c{color:#475569;}.k{color:#A78BFA;}.s{color:#FCD34D;}.cmd{color:#60A5FA;}.hi{color:#F472B6;}
 
 /* COPY-PASTE BOX */
-.cpbox{border:2px solid var(--p);border-radius:12px;overflow:hidden;margin:12px 0;page-break-inside:avoid;}
-.cpbox-header{background:var(--p);padding:7px 14px;display:flex;align-items:center;justify-content:space-between;}
-.cpbox-header .label{font-size:9pt;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;}
-.cpbox-header .copy-badge{background:rgba(255,255,255,.2);color:#fff;font-size:7.5pt;padding:2px 8px;border-radius:4px;font-weight:600;}
-.cpbox code{font-family:'Menlo','Monaco','Courier New',monospace;font-size:8.5pt;color:#E2E8F0;white-space:pre-wrap;line-height:1.55;display:block;padding:12px 14px;background:var(--cb);}
+.cp{border:1.5px solid #7C3AED;border-radius:9px;overflow:hidden;margin:7px 0;}
+.cp-h{background:#7C3AED;padding:5px 11px;display:flex;align-items:center;justify-content:space-between;}
+.cp-h .lb{font-size:8.5pt;font-weight:700;color:#fff;}
+.cp-h .tag{background:rgba(255,255,255,.2);color:#fff;font-size:7pt;padding:1px 7px;border-radius:3px;font-weight:600;}
+.cp code{font-family:'Menlo','Monaco','Courier New',monospace;font-size:8pt;color:#E2E8F0;white-space:pre-wrap;line-height:1.5;display:block;padding:9px 11px;background:#1E293B;}
 
 /* CALLOUT */
-.cal{border-radius:8px;padding:9px 13px;display:flex;gap:9px;margin:8px 0;page-break-inside:avoid;}
-.cal-tip{background:rgba(6,182,212,.07);border-left:3px solid #06B6D4;}
-.cal-warn{background:rgba(245,158,11,.07);border-left:3px solid #F59E0B;}
-.cal-ok{background:rgba(16,185,129,.07);border-left:3px solid #10B981;}
-.cal-bad{background:rgba(239,68,68,.07);border-left:3px solid #EF4444;}
-.cal-icon{font-size:13pt;flex-shrink:0;}
-.cal-body{font-size:9pt;line-height:1.55;color:var(--d);}
-.cal-body strong{font-weight:700;}
+.cal{border-radius:7px;padding:7px 11px;display:flex;gap:7px;margin:5px 0;}
+.tip{background:rgba(6,182,212,.07);border-left:3px solid #06B6D4;}
+.warn{background:rgba(245,158,11,.07);border-left:3px solid #F59E0B;}
+.ok{background:rgba(16,185,129,.07);border-left:3px solid #10B981;}
+.bad{background:rgba(239,68,68,.07);border-left:3px solid #EF4444;}
+.cal-i{font-size:12pt;flex-shrink:0;}
+.cal-b{font-size:8.5pt;line-height:1.5;color:#0F172A;}
+.cal-b strong{font-weight:700;}
 
 /* GRID */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
 
 /* CARD */
-.card{border:1px solid var(--b);border-radius:9px;padding:12px;page-break-inside:avoid;}
-.card h4{font-size:10pt;font-weight:700;margin-bottom:4px;}
-.card p{font-size:8.5pt;color:var(--m);line-height:1.5;}
+.card{border:1px solid #E2E8F0;border-radius:7px;padding:9px;}
+.card h4{font-size:9pt;font-weight:700;margin-bottom:3px;}
+.card p{font-size:8pt;color:#64748B;line-height:1.45;}
 
 /* TABLE */
-.tw{overflow:hidden;border-radius:8px;border:1px solid var(--b);margin:8px 0;}
-table{width:100%;border-collapse:collapse;font-size:9pt;}
-th{background:var(--d2);color:#CBD5E1;padding:7px 12px;text-align:left;font-size:8pt;font-weight:600;}
-td{padding:7px 12px;border-bottom:1px solid var(--b);vertical-align:top;}
+.tw{overflow:hidden;border-radius:7px;border:1px solid #E2E8F0;margin:6px 0;}
+table{width:100%;border-collapse:collapse;font-size:8.5pt;}
+th{background:#1E293B;color:#CBD5E1;padding:6px 10px;text-align:left;font-size:7.5pt;font-weight:600;}
+td{padding:6px 10px;border-bottom:1px solid #E2E8F0;vertical-align:top;}
 tr:last-child td{border-bottom:none;}
 
 /* BADGE */
-.bg{display:inline-block;padding:1px 7px;border-radius:100px;font-size:8pt;font-weight:700;}
+.bg{display:inline-block;padding:1px 6px;border-radius:100px;font-size:7.5pt;font-weight:700;}
 .bg-g{background:rgba(16,185,129,.12);color:#059669;}
 .bg-p{background:rgba(124,58,237,.12);color:#7C3AED;}
 .bg-b{background:rgba(59,130,246,.12);color:#2563EB;}
-.bg-r{background:rgba(239,68,68,.12);color:#DC2626;}
 
-code.il{background:rgba(124,58,237,.1);color:#7C3AED;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:8.5pt;}
-.div{height:1px;background:var(--b);margin:12px 0;}
-.flow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:6px 0;}
-.fi{background:var(--bg);border:1px solid var(--b);border-radius:5px;padding:3px 9px;font-size:8.5pt;font-weight:500;}
-.fa{color:var(--l);font-size:10pt;}
+code.il{background:rgba(124,58,237,.1);color:#7C3AED;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:8pt;}
+.div{height:1px;background:#E2E8F0;margin:8px 0;}
+.flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:5px 0;}
+.fi{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:4px;padding:2px 7px;font-size:8pt;font-weight:500;}
+.fa{color:#CBD5E1;font-size:9pt;}
 
-/* OS SPLIT */
-.os{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0;}
-.os-b{border:1px solid var(--b);border-radius:8px;overflow:hidden;}
-.os-h{background:var(--d2);color:#CBD5E1;padding:6px 12px;font-size:8.5pt;font-weight:700;}
+.os{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0;}
+.os-b{border:1px solid #E2E8F0;border-radius:7px;overflow:hidden;}
+.os-h{background:#1E293B;color:#CBD5E1;padding:5px 10px;font-size:8pt;font-weight:700;}
+.os-b .inner{padding:8px;}
 
-/* HL BOX */
-.hl{background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:10px;padding:16px 20px;color:#fff;page-break-inside:avoid;}
-.hl h4{font-size:12pt;font-weight:800;margin-bottom:4px;}
-.hl p{font-size:9pt;opacity:.85;line-height:1.55;}
+.hl{background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:8px;padding:13px 16px;color:#fff;}
+.hl h4{font-size:10pt;font-weight:800;margin-bottom:3px;}
+.hl p{font-size:8.5pt;opacity:.85;line-height:1.5;}
 
-/* CHECKLIST */
-.cl{list-style:none;margin:8px 0;}
-.cl li{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:9.5pt;border-bottom:1px dashed var(--b);}
+.cl{list-style:none;margin:6px 0;}
+.cl li{display:flex;align-items:flex-start;gap:7px;padding:4px 0;font-size:9pt;border-bottom:1px dashed #E2E8F0;}
 .cl li:last-child{border-bottom:none;}
-.cb2{width:14px;height:14px;border:1.5px solid var(--b);border-radius:3px;flex-shrink:0;margin-top:2px;}
-
-/* FOOTER */
-.pf{text-align:right;font-size:7.5pt;color:var(--l);padding-top:6px;border-top:1px solid var(--b);margin-top:16px;}
+.cb2{width:13px;height:13px;border:1.5px solid #E2E8F0;border-radius:3px;flex-shrink:0;margin-top:2px;}
 </style>
 </head>
 <body>
 
 <!-- COVER -->
 <div class="cover">
-  <div class="cover-eyebrow">Implementation Guide</div>
+<div class="cover-inner">
+  <div class="cover-eye">Implementation Guide · Claude Code</div>
   <h1>Claude Code<br><em>実装手順書</em></h1>
   <p class="cover-desc">インストールから業務自動化まで — コピペで即完了するプロンプト付き完全ガイド</p>
   <div class="cover-stats">
-    <div class="cover-stat"><div class="n">10</div><div class="l">実装ステップ</div></div>
-    <div class="cover-stat"><div class="n">20+</div><div class="l">コピペプロンプト</div></div>
-    <div class="cover-stat"><div class="n">Mac/Win</div><div class="l">両対応</div></div>
-    <div class="cover-stat"><div class="n">〜2h</div><div class="l">初期セットアップ</div></div>
+    <div><div class="cs-n">10</div><div class="cs-l">実装ステップ</div></div>
+    <div><div class="cs-n">20+</div><div class="cs-l">コピペプロンプト</div></div>
+    <div><div class="cs-n">Mac/Win</div><div class="cs-l">両対応</div></div>
+    <div><div class="cs-n">〜2h</div><div class="cs-l">初期セットアップ</div></div>
   </div>
+</div>
 </div>
 
 <!-- TOC -->
 <div class="toc">
   <h2>目次</h2>
-  <p class="toc-sub">上から順に進めると Claude Code が完全に動く。各ステップに「コピペプロンプト」付き。</p>
-  <div class="toc-group">
-    <div class="toc-group-title">Chapter 1 — 環境構築（約20分）</div>
-    <div class="toc-row"><div class="toc-badge">1</div><div><div class="toc-title">Node.js と Claude Code のインストール</div><div class="toc-sub-text">Mac（Homebrew）/ Windows（WSL2）</div></div></div>
-    <div class="toc-row"><div class="toc-badge">2</div><div><div class="toc-title">ログインと初回起動確認</div><div class="toc-sub-text">Claude Pro / Max アカウント</div></div></div>
-    <div class="toc-row"><div class="toc-badge">3</div><div><div class="toc-title">CLAUDE.md の作成</div><div class="toc-sub-text">AIへの「取扱説明書」— コピペテンプレート付き</div></div></div>
-  </div>
-  <div class="toc-group">
-    <div class="toc-group-title">Chapter 2 — コア機能の設定（約40分）</div>
-    <div class="toc-row"><div class="toc-badge">4</div><div><div class="toc-title">セキュリティ設定（settings.json）</div><div class="toc-sub-text">deny / allow — コピペ設定済みJSON付き</div></div></div>
-    <div class="toc-row"><div class="toc-badge">5</div><div><div class="toc-title">Hooks（完了通知・シークレット検知）</div><div class="toc-sub-text">Mac / Windows — コピペシェルスクリプト付き</div></div></div>
-    <div class="toc-row"><div class="toc-badge">6</div><div><div class="toc-title">Skills（スラッシュコマンド）の作成</div><div class="toc-sub-text">6種類のコピペSkillテンプレート付き</div></div></div>
-    <div class="toc-row"><div class="toc-badge">7</div><div><div class="toc-title">Memory システムの初期設定</div><div class="toc-sub-text">コピペ記憶コマンド集付き</div></div></div>
-  </div>
-  <div class="toc-group">
-    <div class="toc-group-title">Chapter 3 — 外部連携と自動化（約60分）</div>
-    <div class="toc-row"><div class="toc-badge">8</div><div><div class="toc-title">MCP サーバーの接続</div><div class="toc-sub-text">Slack / Gmail / Calendar / 会計ツール</div></div></div>
-    <div class="toc-row"><div class="toc-badge">9</div><div><div class="toc-title">定期自動実行の設定</div><div class="toc-sub-text">Mac（launchd）/ Windows（タスクスケジューラ）— コピペplist付き</div></div></div>
-    <div class="toc-row"><div class="toc-badge">10</div><div><div class="toc-title">Cursor IDE との連携</div><div class="toc-sub-text">エディタと Claude Code の使い分け</div></div></div>
-  </div>
-  <div class="toc-group">
-    <div class="toc-group-title">Appendix — コピペで即完了！自動化レシピ集</div>
-    <div class="toc-row"><div class="toc-badge gray">A</div><div><div class="toc-title">SNS投稿案 / ナレッジ自動収集 / 商談ブリーフ自動生成</div></div></div>
-    <div class="toc-row"><div class="toc-badge gray">B</div><div><div class="toc-title">財務分析自動化 / Gmail自動下書き / よくあるトラブル対処</div></div></div>
+  <div class="toc-cols">
+    <div>
+      <div class="toc-g">
+        <div class="toc-g-title">Chapter 1 — 環境構築（約20分）</div>
+        <div class="toc-row"><span class="tb">1</span><div><div class="toc-t">Node.js と Claude Code のインストール</div><div class="toc-s">Mac（Homebrew）/ Windows（WSL2）</div></div></div>
+        <div class="toc-row"><span class="tb">2</span><div><div class="toc-t">ログインと初回起動確認</div></div></div>
+        <div class="toc-row"><span class="tb">3</span><div><div class="toc-t">CLAUDE.md の作成</div><div class="toc-s">コピペテンプレート付き</div></div></div>
+      </div>
+      <div class="toc-g">
+        <div class="toc-g-title">Chapter 2 — コア機能（約40分）</div>
+        <div class="toc-row"><span class="tb">4</span><div><div class="toc-t">セキュリティ設定（settings.json）</div><div class="toc-s">コピペJSON付き</div></div></div>
+        <div class="toc-row"><span class="tb">5</span><div><div class="toc-t">Hooks（完了通知・シークレット検知）</div><div class="toc-s">コピペシェルスクリプト付き</div></div></div>
+        <div class="toc-row"><span class="tb">6</span><div><div class="toc-t">Skills（スラッシュコマンド）</div><div class="toc-s">6種類コピペ一括作成</div></div></div>
+        <div class="toc-row"><span class="tb">7</span><div><div class="toc-t">Memory システムの初期設定</div><div class="toc-s">コピペ記憶コマンド集</div></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="toc-g">
+        <div class="toc-g-title">Chapter 3 — 外部連携と自動化（約60分）</div>
+        <div class="toc-row"><span class="tb">8</span><div><div class="toc-t">MCP サーバーの接続</div><div class="toc-s">Slack / Gmail / Calendar / 会計ツール</div></div></div>
+        <div class="toc-row"><span class="tb">9</span><div><div class="toc-t">定期自動実行の設定</div><div class="toc-s">launchd / タスクスケジューラ コピペplist付き</div></div></div>
+        <div class="toc-row"><span class="tb">10</span><div><div class="toc-t">Cursor IDE との連携</div></div></div>
+      </div>
+      <div class="toc-g">
+        <div class="toc-g-title">Appendix — 自動化レシピ集</div>
+        <div class="toc-row"><span class="tb g">A</span><div><div class="toc-t">SNS投稿 / ナレッジ自動収集</div></div></div>
+        <div class="toc-row"><span class="tb g">B</span><div><div class="toc-t">商談ブリーフ（GAS全コード）</div></div></div>
+        <div class="toc-row"><span class="tb g">C</span><div><div class="toc-t">財務分析自動化 / トラブル対処</div></div></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- CH1 -->
-<div class="ch-div">
-  <div class="ch-num">1</div>
-  <div class="ch-info">
-    <div class="ch-label">Chapter 1</div>
-    <h2>環境構築</h2>
-    <p>Node.js インストールから Claude Code の初回起動まで。Mac / Windows 両対応。</p>
-  </div>
-  <div class="ch-time">⏱ 約20分</div>
-</div>
+<!-- ════════ CH1 ════════ -->
+<div class="ch"><div class="ch-n">1</div><div class="ch-info"><div class="ch-label">Chapter 1</div><h2>環境構築</h2></div><div class="ch-time">⏱ 約20分</div></div>
 
 <!-- STEP 1 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">📦</div><div><h3>Step 1 — Node.js と Claude Code のインストール</h3><div class="info">Chapter 1 · 環境構築</div></div></div>
-  <div class="os">
-    <div class="os-b">
-      <div class="os-h">🍎 Mac</div>
-      <div style="padding:10px">
-        <div class="step"><div class="sn">1</div><div class="sc"><h4>Homebrew をインストール（未導入の場合）</h4>
-          <div class="cb"><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></div></div></div>
-        <div class="step"><div class="sn">2</div><div class="sc"><h4>Node.js をインストール</h4>
-          <div class="cb"><code><span class="cmd">brew install node</span>
+<div class="ph"><div class="ph-icon">📦</div><div><h3>Step 1 — Node.js と Claude Code のインストール</h3><div class="info">Chapter 1 · 環境構築</div></div></div>
+<div class="os">
+  <div class="os-b"><div class="os-h">🍎 Mac</div><div class="inner">
+    <div class="step"><div class="sn">1</div><div class="sc"><h4>Homebrew をインストール（未導入の場合）</h4>
+      <div class="cb"><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></div></div></div>
+    <div class="step"><div class="sn">2</div><div class="sc"><h4>Node.js をインストール</h4>
+      <div class="cb"><code><span class="cmd">brew install node</span>
 <span class="cmd">node --version</span>  <span class="c"># v18以上を確認</span></code></div></div></div>
-        <div class="step"><div class="sn">3</div><div class="sc"><h4>Claude Code をインストール</h4>
-          <div class="cb"><code><span class="cmd">npm install -g @anthropic-ai/claude-code</span></code></div></div></div>
-      </div>
-    </div>
-    <div class="os-b">
-      <div class="os-h">🪟 Windows（WSL2推奨）</div>
-      <div style="padding:10px">
-        <div class="step"><div class="sn">1</div><div class="sc"><h4>WSL2 + Ubuntu をインストール</h4><p>PowerShellを管理者権限で開く</p>
-          <div class="cb"><code><span class="cmd">wsl --install</span>  <span class="c"># 再起動後にUbuntu起動</span></code></div></div></div>
-        <div class="step"><div class="sn">2</div><div class="sc"><h4>Node.js をインストール（Ubuntu内）</h4>
-          <div class="cb"><code><span class="cmd">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</span>
+    <div class="step"><div class="sn">3</div><div class="sc"><h4>Claude Code をインストール</h4>
+      <div class="cb"><code><span class="cmd">npm install -g @anthropic-ai/claude-code</span></code></div></div></div>
+  </div></div>
+  <div class="os-b"><div class="os-h">🪟 Windows（WSL2推奨）</div><div class="inner">
+    <div class="step"><div class="sn">1</div><div class="sc"><h4>WSL2 + Ubuntu をインストール</h4><p>PowerShellを管理者権限で開く</p>
+      <div class="cb"><code><span class="cmd">wsl --install</span>  <span class="c"># 再起動後にUbuntu起動</span></code></div></div></div>
+    <div class="step"><div class="sn">2</div><div class="sc"><h4>Node.js をインストール（Ubuntu内）</h4>
+      <div class="cb"><code><span class="cmd">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</span>
 <span class="cmd">sudo apt-get install -y nodejs</span></code></div></div></div>
-        <div class="step"><div class="sn">3</div><div class="sc"><h4>Claude Code をインストール</h4>
-          <div class="cb"><code><span class="cmd">npm install -g @anthropic-ai/claude-code</span></code></div></div></div>
-      </div>
-    </div>
-  </div>
-  <div class="cal cal-tip"><div class="cal-icon">💡</div><div class="cal-body"><strong>Windows Terminal 推奨：</strong>Microsoft Store から「Windows Terminal」をインストールするとWSL2操作が快適になります（タブ切替・フォント・テーマ設定可）。</div></div>
-  <div class="pf">Claude Code 実装手順書 · Step 1</div>
+    <div class="step"><div class="sn">3</div><div class="sc"><h4>Claude Code をインストール</h4>
+      <div class="cb"><code><span class="cmd">npm install -g @anthropic-ai/claude-code</span></code></div></div></div>
+  </div></div>
+</div>
+<div class="cal tip"><div class="cal-i">💡</div><div class="cal-b"><strong>Windows Terminal 推奨：</strong>Microsoft Store から「Windows Terminal」をインストールするとWSL2操作が快適になります。</div></div>
 </div>
 
 <!-- STEP 2 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">🔑</div><div><h3>Step 2 — ログインと初回起動確認</h3><div class="info">Chapter 1 · 環境構築</div></div></div>
-  <div class="step"><div class="sn">1</div><div class="sc"><h4>作業フォルダに移動してから起動</h4>
-    <div class="cb"><code><span class="c"># 作業フォルダで起動するとそのフォルダを「作業ディレクトリ」として認識</span>
-<span class="cmd">cd ~/work/myproject</span>
-<span class="cmd">claude</span>
-<span class="c"># ブラウザが開いてclaude.aiのログイン画面が表示される（初回のみ）</span></code></div></div></div>
-  <div class="step"><div class="sn">2</div><div class="sc"><h4>動作確認</h4>
-    <div class="cb"><code><span class="c"># チャット画面で話しかけてみる</span>
-&gt; こんにちは。今日の日付を教えてください。</code></div></div></div>
-  <div class="div"></div>
-  <div class="tw"><table>
-    <tr><th>コマンド</th><th>動作</th></tr>
-    <tr><td><code class="il">claude</code></td><td>チャット起動（カレントディレクトリを読む）</td></tr>
-    <tr><td><code class="il">claude -p "プロンプト"</code></td><td>非対話型で1回だけ実行（スクリプト用）</td></tr>
-    <tr><td><code class="il">/clear</code></td><td>会話をリセット（コンテキストを空に）</td></tr>
-    <tr><td><code class="il">/exit</code></td><td>終了</td></tr>
-    <tr><td><code class="il">Ctrl+C</code></td><td>実行中の処理を中断</td></tr>
-    <tr><td><code class="il">/</code> と入力</td><td>スラッシュコマンド一覧を表示</td></tr>
-  </table></div>
-  <div class="cal cal-warn"><div class="cal-icon">⚠️</div><div class="cal-body"><strong>必要なプラン：</strong>Claude Code は <strong>Claude Pro（月$20）以上</strong>が必要。最大限に使うなら Max プランも検討を。</div></div>
-  <div class="pf">Claude Code 実装手順書 · Step 2</div>
+<div class="ph"><div class="ph-icon">🔑</div><div><h3>Step 2 — ログインと初回起動確認</h3><div class="info">Chapter 1 · 環境構築</div></div></div>
+<div class="step"><div class="sn">1</div><div class="sc"><h4>作業フォルダに移動してから起動</h4>
+  <div class="cb"><code><span class="cmd">cd ~/work/myproject  </span><span class="c"># 作業フォルダで起動するとそのフォルダを認識</span>
+<span class="cmd">claude</span>              <span class="c"># ブラウザが開いてclaude.aiログイン画面（初回のみ）</span></code></div></div></div>
+<div class="step"><div class="sn">2</div><div class="sc"><h4>動作確認</h4>
+  <div class="cb"><code>&gt; こんにちは。今日の日付を教えてください。  <span class="c"># 返答が来れば成功</span></code></div></div></div>
+<div class="tw"><table>
+  <tr><th>コマンド</th><th>動作</th><th>コマンド</th><th>動作</th></tr>
+  <tr><td><code class="il">claude</code></td><td>チャット起動</td><td><code class="il">/clear</code></td><td>会話をリセット</td></tr>
+  <tr><td><code class="il">claude -p "..."</code></td><td>非対話型実行（スクリプト用）</td><td><code class="il">/exit</code></td><td>終了</td></tr>
+  <tr><td><code class="il">Ctrl+C</code></td><td>処理を中断</td><td><code class="il">/</code> と入力</td><td>コマンド一覧表示</td></tr>
+</table></div>
+<div class="cal warn"><div class="cal-i">⚠️</div><div class="cal-b"><strong>必要なプラン：</strong>Claude Code は <strong>Claude Pro（月$20）以上</strong>が必要。フル活用するなら Max プランも検討を。</div></div>
 </div>
 
 <!-- STEP 3 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">📄</div><div><h3>Step 3 — CLAUDE.md の作成</h3><div class="info">Chapter 1 · 環境構築</div></div></div>
-  <p style="color:var(--m);font-size:9pt;margin-bottom:10px">起動するたびに自動読み込みされる「AIへの取扱説明書」。以下をそのままコピペして、括弧内を自分の情報に書き換えるだけ。</p>
-  <div class="step"><div class="sn">1</div><div class="sc"><h4>ファイルを作成する</h4>
-    <div class="cb"><code><span class="cmd">mkdir -p ~/.claude && nano ~/.claude/CLAUDE.md</span>
-<span class="c"># または Cursor / VS Code で ~/.claude/CLAUDE.md を開いて編集</span></code></div></div></div>
-
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — CLAUDE.md テンプレート</div><div class="copy-badge">そのまま使えます</div></div>
-    <code># 自分のプロフィール
+<div class="ph"><div class="ph-icon">📄</div><div><h3>Step 3 — CLAUDE.md の作成</h3><div class="info">Chapter 1 · 環境構築</div></div></div>
+<p style="font-size:8.5pt;color:#64748B;margin-bottom:7px">起動するたびに自動読み込みされる「AIへの取扱説明書」。以下をそのままコピペして括弧内を書き換えるだけ。</p>
+<div class="step"><div class="sn">1</div><div class="sc"><h4>ファイルを作成</h4>
+  <div class="cb"><code><span class="cmd">mkdir -p ~/.claude && nano ~/.claude/CLAUDE.md</span>  <span class="c"># またはCursor/VS Codeで編集</span></code></div></div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — CLAUDE.md テンプレート（括弧内を書き換えて使用）</div><div class="tag">そのまま使えます</div></div>
+  <code># 自分のプロフィール
 - 名前：[あなたの名前]（[会社名] [役職]）
 - 役割：[担当業務を一言で]
 - 目標：[今期の主な目標]
@@ -279,144 +249,95 @@ code.il{background:rgba(124,58,237,.1);color:#7C3AED;padding:1px 5px;border-radi
 - settings.json を勝手に書き換えない
 - .ssh や .aws 配下を読み込まない
 - git push する前に必ず確認する</code>
-  </div>
-
-  <div class="cal cal-ok"><div class="cal-icon">✅</div><div class="cal-body"><strong>確認方法：</strong>claude を再起動して「私の名前は？」と聞くと、CLAUDE.md の内容を反映した返答が来ます。</div></div>
-  <div class="pf">Claude Code 実装手順書 · Step 3</div>
+</div>
+<div class="cal ok"><div class="cal-i">✅</div><div class="cal-b"><strong>確認：</strong>claude を再起動して「私の名前は？」→ CLAUDE.md の内容を反映した返答が来れば成功。</div></div>
 </div>
 
-<!-- CH2 -->
-<div class="ch-div">
-  <div class="ch-num">2</div>
-  <div class="ch-info">
-    <div class="ch-label">Chapter 2</div>
-    <h2>コア機能の設定</h2>
-    <p>セキュリティ・Hooks・Skills・Memory を設定して「自分専用の AI エージェント」に仕上げる。</p>
-  </div>
-  <div class="ch-time">⏱ 約40分</div>
-</div>
+<!-- ════════ CH2 ════════ -->
+<div class="ch"><div class="ch-n">2</div><div class="ch-info"><div class="ch-label">Chapter 2</div><h2>コア機能の設定</h2></div><div class="ch-time">⏱ 約40分</div></div>
 
 <!-- STEP 4 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">🛡️</div><div><h3>Step 4 — セキュリティ設定（settings.json）</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
-  <p style="color:var(--m);font-size:9pt;margin-bottom:10px">Claude Code は強力なので、最初にセキュリティ設定を入れておく。以下をそのままコピペして <code class="il">~/.claude/settings.json</code> に貼り付けるだけ。</p>
-
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — settings.json（セキュリティ設定）</div><div class="copy-badge">Cursor/VS Codeで貼り付け推奨</div></div>
-    <code>{
+<div class="ph"><div class="ph-icon">🛡️</div><div><h3>Step 4 — セキュリティ設定（settings.json）</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
+<p style="font-size:8.5pt;color:#64748B;margin-bottom:7px">以下をそのままコピペして <code class="il">~/.claude/settings.json</code> に貼り付けるだけ。</p>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — settings.json（セキュリティ設定完成版）</div><div class="tag">Cursor/VS Codeで貼り付け推奨</div></div>
+  <code>{
   "permissions": {
     "deny": [
-      "Read(~/.ssh/**)",
-      "Read(~/.aws/**)",
-      "Read(~/.gnupg/**)",
-      "Read(~/.npmrc)",
-      "Edit(~/.bashrc)",
-      "Edit(~/.zshrc)",
-      "Edit(~/.claude/settings.json)",
-      "Bash(nc *)",
-      "Bash(wget *)"
+      "Read(~/.ssh/**)", "Read(~/.aws/**)", "Read(~/.gnupg/**)", "Read(~/.npmrc)",
+      "Edit(~/.bashrc)", "Edit(~/.zshrc)", "Edit(~/.claude/settings.json)",
+      "Bash(nc *)", "Bash(wget *)"
     ],
     "allow": [
-      "Bash(git *)",
-      "Bash(python3 *)",
-      "Bash(node *)",
-      "Bash(npm *)",
-      "Bash(curl *)",
-      "Bash(ls *)",
-      "Bash(grep *)"
+      "Bash(git *)", "Bash(python3 *)", "Bash(node *)",
+      "Bash(npm *)", "Bash(curl *)", "Bash(ls *)", "Bash(grep *)"
     ]
   },
   "defaultMode": "auto"
 }</code>
-  </div>
-
-  <div class="g2">
-    <div class="cal cal-bad"><div class="cal-icon">🚨</div><div class="cal-body"><strong>必ずCursor/VS Codeで編集：</strong>ターミナルにコピペすると改行が入りJSONが壊れます。エディタで直接開いて貼り付けてください。</div></div>
-    <div class="cal cal-tip"><div class="cal-icon">✅</div><div class="cal-body"><strong>確認コマンド：</strong><br><code class="il">python3 -m json.tool ~/.claude/settings.json</code><br>エラーが出なければJSON正常。</div></div>
-  </div>
-  <div class="pf">Claude Code 実装手順書 · Step 4</div>
+</div>
+<div class="g2">
+  <div class="cal bad"><div class="cal-i">🚨</div><div class="cal-b"><strong>必ずCursor/VS Codeで編集：</strong>ターミナルにコピペすると改行が入りJSONが壊れます。</div></div>
+  <div class="cal tip"><div class="cal-i">✅</div><div class="cal-b"><strong>確認：</strong><code class="il">python3 -m json.tool ~/.claude/settings.json</code> でエラーが出なければOK。</div></div>
+</div>
 </div>
 
 <!-- STEP 5 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">🔔</div><div><h3>Step 5 — Hooks の設定（完了通知・シークレット検知）</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
-
-  <div class="step"><div class="sn">1</div><div class="sc"><h4>hooksフォルダを作成して一括セットアップ</h4><p>以下のコマンドをターミナルに貼り付けるだけですべてのhookが設定されます。</p></div></div>
-
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — Hooks 一括セットアップ（Mac）</div><div class="copy-badge">ターミナルに貼り付けて実行</div></div>
-    <code>mkdir -p ~/.claude/hooks
-
-# 完了通知スクリプト
+<div class="ph"><div class="ph-icon">🔔</div><div><h3>Step 5 — Hooks の設定（完了通知・シークレット検知）</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
+<div class="os">
+  <div class="os-b"><div class="os-h">🍎 Mac — ターミナルに貼り付けて実行</div><div class="inner">
+    <div class="cp">
+      <div class="cp-h"><div class="lb">📋 コピペOK — Mac Hooks 一括セットアップ</div></div>
+      <code>mkdir -p ~/.claude/hooks
 cat > ~/.claude/hooks/notify.sh << 'EOF'
 #!/bin/bash
 osascript -e 'display notification "作業完了しました" with title "Claude Code" sound name "Glass"'
 EOF
-
-# シークレット検知スクリプト  
-cat > ~/.claude/hooks/secret-check.sh << 'EOF'
-#!/bin/bash
-INPUT=$(cat)
-if echo "$INPUT" | grep -qiE 'password|secret|token.*=|key.*='; then
-  echo "WARNING: 機密情報が含まれている可能性があります" >&2
-fi
-echo "$INPUT"
-EOF
-
-chmod +x ~/.claude/hooks/notify.sh ~/.claude/hooks/secret-check.sh
-echo "Hooks setup complete!"</code>
-  </div>
-
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — Hooks 一括セットアップ（Windows WSL2）</div><div class="copy-badge">WSL2ターミナルに貼り付けて実行</div></div>
-    <code>mkdir -p ~/.claude/hooks
-
+chmod +x ~/.claude/hooks/notify.sh
+echo "完了!"</code>
+    </div>
+  </div></div>
+  <div class="os-b"><div class="os-h">🪟 Windows WSL2 — WSL2ターミナルに貼り付けて実行</div><div class="inner">
+    <div class="cp">
+      <div class="cp-h"><div class="lb">📋 コピペOK — Windows Hooks 一括セットアップ</div></div>
+      <code>mkdir -p ~/.claude/hooks
 cat > ~/.claude/hooks/notify.sh << 'EOF'
 #!/bin/bash
-powershell.exe -Command "
-Add-Type -AssemblyName System.Windows.Forms
-[System.Windows.Forms.MessageBox]::Show('作業完了しました','Claude Code')
-" 2>/dev/null || echo "Claude Code: 作業完了"
+powershell.exe -Command "Write-Host 'Claude Code: 完了'" 2>/dev/null
 EOF
-
 chmod +x ~/.claude/hooks/notify.sh
-echo "Hooks setup complete!"</code>
-  </div>
-
-  <div class="step"><div class="sn">2</div><div class="sc"><h4>settings.json の hooks セクションに追記（Cursor/VS Codeで）</h4>
-    <div class="cpbox" style="margin-top:4px">
-      <div class="cpbox-header"><div class="label">📋 コピペOK — settings.json に追記する hooks 設定</div></div>
-      <code>"hooks": {
-  "Stop": [
-    { "type": "command", "command": "bash ~/.claude/hooks/notify.sh" }
-  ]
+echo "完了!"</code>
+    </div>
+  </div></div>
+</div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — settings.json に追記する hooks 設定</div><div class="tag">Cursor/VS Codeで追記</div></div>
+  <code>"hooks": {
+  "Stop": [{ "type": "command", "command": "bash ~/.claude/hooks/notify.sh" }]
 }</code>
-    </div></div></div>
-  <div class="pf">Claude Code 実装手順書 · Step 5</div>
+</div>
 </div>
 
 <!-- STEP 6 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">⚡</div><div><h3>Step 6 — Skills（スラッシュコマンド）の作成</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
-  <p style="color:var(--m);font-size:9pt;margin-bottom:10px">よく使う作業をSkillとして定義。<code class="il">/skill名</code> と打つだけで複雑な指示を自動実行。以下を一括作成するスクリプトをコピペ。</p>
+<div class="ph"><div class="ph-icon">⚡</div><div><h3>Step 6 — Skills（スラッシュコマンド）の作成</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
+<p style="font-size:8.5pt;color:#64748B;margin-bottom:7px">以下を貼り付けると6種類のSkillが一括作成されます。<code class="il">/skill名</code> と打つだけで複雑な指示を自動実行。</p>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — Skills 6種類を一括作成（ターミナルに貼り付けて実行）</div></div>
+  <code>mkdir -p ~/.claude/skills
 
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — Skills フォルダと6種類のSkillを一括作成</div><div class="copy-badge">ターミナルに貼り付けて実行</div></div>
-    <code>mkdir -p ~/.claude/skills
-
-# SNS投稿案生成
 cat > ~/.claude/skills/sns-post.md << 'EOF'
 ---
 name: sns-post
 description: テーマからX投稿案を3案生成する
 ---
-以下の条件でX投稿案を3案生成してください。
-テーマ：{引数として渡されたテキスト}
-条件：140文字以内 / 数字を1つ以上含める / 絵文字2個まで
+以下の条件でX投稿案を3案生成してください。テーマ：{引数}
+条件：140文字以内 / 数字1つ以上 / 絵文字2個まで
 3案に【A案】【B案】【C案】をつけて提示してください。
 EOF
 
-# 議事録生成
 cat > ~/.claude/skills/minutes.md << 'EOF'
 ---
 name: minutes
@@ -426,65 +347,50 @@ description: 会議メモから議事録を生成する
 フォーマット：①決定事項 ②アクションアイテム（担当者・期限付き） ③次回議題
 EOF
 
-# コードレビュー
 cat > ~/.claude/skills/review.md << 'EOF'
 ---
 name: review
-description: 変更したコードをレビューする
+description: 変更コードをレビューする
 ---
-git diff で変更されたコードをすべて確認し、以下の観点でレビューしてください：
-①セキュリティリスク ②バグの可能性 ③パフォーマンス ④可読性
-問題点は重大度（高/中/低）付きで列挙してください。
+git diff で変更されたコードを確認し、①セキュリティ ②バグ ③パフォーマンス ④可読性の観点でレビューしてください。問題点は重大度（高/中/低）付きで列挙してください。
 EOF
 
-# 朝のサマリー
 cat > ~/.claude/skills/morning.md << 'EOF'
 ---
 name: morning
 description: 今日の業務サマリーを生成する
 ---
-~/work/tasks/today.md を読み込み、以下の形式でサマリーを生成してください：
-①最優先タスク（1件） ②完了済み件数 ③今日の完了目標数
-3行以内で要点のみ出力してください。
+~/work/tasks/today.md を読み込み、①最優先タスク ②完了済み件数 ③今日の完了目標を3行以内で出力してください。
 EOF
 
-# note記事下書き
 cat > ~/.claude/skills/note.md << 'EOF'
 ---
 name: note
-description: noteの記事下書きを生成する
+description: note記事の下書きを生成する
 ---
-以下のテーマでnote記事の下書きを生成してください。
-テーマ：{引数}
-構成：冒頭3行で結論 → 背景・問題提起 → 解決策3点 → まとめ
-文体：です・ます調、専門用語なし、2000〜3000字
+テーマ：{引数} で note記事の下書きを生成してください。
+構成：冒頭3行で結論→背景・問題提起→解決策3点→まとめ。文体：です・ます調、2000〜3000字
 EOF
 
-# 商談準備
 cat > ~/.claude/skills/prep.md << 'EOF'
 ---
 name: prep
-description: 商談相手の情報を調査して準備資料を生成する
+description: 商談相手を調査して準備資料を生成する
 ---
-次の商談相手について調査してください：{引数（会社名・担当者名）}
-調査内容：①会社概要・規模 ②最近のニュース・動向 ③想定される課題・ニーズ
-④話すべき提案ポイント 2〜3点
+{引数（会社名・担当者名）} について調査してください。
+①会社概要 ②最近のニュース ③想定課題 ④話すべき提案ポイント2〜3点
 EOF
 
-echo "Skills setup complete! 6 skills created."
-echo "Usage: claude を起動して /sns-post テーマ など入力"</code>
-  </div>
-  <div class="pf">Claude Code 実装手順書 · Step 6</div>
+echo "Skills setup complete! 使い方: claude起動後に /sns-post テーマ など入力"</code>
+</div>
 </div>
 
 <!-- STEP 7 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">🧠</div><div><h3>Step 7 — Memory システムの初期設定</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
-  <p style="color:var(--m);font-size:9pt;margin-bottom:10px">「覚えておいて」と話しかけるだけで自動保存。以下のプロンプトをそのままclaude に貼り付けて初期記憶を一括登録できます。</p>
-
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — claude に貼り付けて初期メモリを一括登録</div><div class="copy-badge">claude 起動後に貼り付け</div></div>
-    <code>以下の情報をすべてメモリに保存してください。
+<div class="ph"><div class="ph-icon">🧠</div><div><h3>Step 7 — Memory システムの初期設定</h3><div class="info">Chapter 2 · コア機能の設定</div></div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — claude に貼り付けて初期メモリを一括登録</div><div class="tag">claude起動後に貼り付け</div></div>
+  <code>以下の情報をすべてメモリに保存してください。
 
 【フィードバック】
 - コードのコメントは最小限にする（変数名・関数名で意味を伝える）
@@ -493,6 +399,7 @@ echo "Usage: claude を起動して /sns-post テーマ など入力"</code>
 - git push する前に必ず確認する
 - settings.json の編集は Cursor/VS Code で行う（コピペ改行問題を防ぐため）
 - 2行以上のコマンドはスクリプトファイルに書いて bash で実行する
+- APIキーはチャットに貼らず、ファイルに書いてパスを伝える
 
 【参照情報】
 - スクリプトの置き場所：~/work/scripts/
@@ -500,412 +407,278 @@ echo "Usage: claude を起動して /sns-post テーマ など入力"</code>
 - 業務ファイル：~/work/docs/
 
 これらをメモリファイルとして ~/.claude/ 配下に保存してください。</code>
-  </div>
-
-  <div class="div"></div>
-  <div class="step"><div class="sn">+</div><div class="sc"><h4>Rules フォルダでドメイン別ルールを体系化</h4>
-    <div class="cpbox" style="margin-top:6px">
-      <div class="cpbox-header"><div class="label">📋 コピペOK — Rules フォルダと基本ルールファイルを作成</div></div>
-      <code>mkdir -p ~/.claude/rules
-
+</div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — Rules フォルダと基本ルールを作成（ターミナルに貼り付け）</div></div>
+  <code>mkdir -p ~/.claude/rules
 cat > ~/.claude/rules/content.md << 'EOF'
-# SNS・コンテンツ作成ルール
-- 一人称は「私」
-- 体言止めを多用する
-- 専門用語は使わず平易な言葉で
+# SNS・コンテンツルール
+- 一人称は「私」、体言止めを多用する、専門用語は使わない
 - X投稿：絵文字2個まで・140文字基本
-- note記事：冒頭3行で結論を述べる
+- note記事：冒頭3行で結論
 EOF
-
 cat > ~/.claude/rules/ops.md << 'EOF'
 # 業務・運用ルール
-- 本番環境のDBには直接接続しない（ステージングで確認後）
-- APIキーはファイルに書いて渡す（チャットに貼らない）
+- 本番DBには直接接続しない（ステージングで確認後）
+- APIキーはファイル経由で渡す（チャットに貼らない）
 - 定期実行スクリプトはログを必ず記録する
 EOF
 echo "Rules setup complete!"</code>
-    </div></div></div>
-  <div class="pf">Claude Code 実装手順書 · Step 7</div>
+</div>
 </div>
 
-<!-- CH3 -->
-<div class="ch-div">
-  <div class="ch-num">3</div>
-  <div class="ch-info">
-    <div class="ch-label">Chapter 3</div>
-    <h2>外部連携と自動化</h2>
-    <p>MCP で外部サービスを繋ぎ、スケジューラで無人実行させる設定を行います。</p>
-  </div>
-  <div class="ch-time">⏱ 約60分</div>
-</div>
+<!-- ════════ CH3 ════════ -->
+<div class="ch"><div class="ch-n">3</div><div class="ch-info"><div class="ch-label">Chapter 3</div><h2>外部連携と自動化</h2></div><div class="ch-time">⏱ 約60分</div></div>
 
 <!-- STEP 8 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">🔌</div><div><h3>Step 8 — MCP サーバーの接続</h3><div class="info">Chapter 3 · 外部連携と自動化</div></div></div>
-  <div class="cal cal-tip"><div class="cal-icon">💡</div><div class="cal-body"><strong>一番かんたんな方法：</strong>claude.ai（Web版）の <strong>Settings → Connectors</strong> から GUI で接続。Slack・Gmail・Googleカレンダー・Notionなど主要サービスはこちらが最速で設定不要。</div></div>
-  <div class="div"></div>
-  <h4 style="font-size:10pt;font-weight:700;margin-bottom:8px">settings.json で直接設定する場合（上級者向け）</h4>
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — settings.json に追記する MCP 設定テンプレート</div><div class="copy-badge">トークン部分を書き換えて使用</div></div>
-    <code>"mcpServers": {
+<div class="ph"><div class="ph-icon">🔌</div><div><h3>Step 8 — MCP サーバーの接続</h3><div class="info">Chapter 3 · 外部連携と自動化</div></div></div>
+<div class="cal tip"><div class="cal-i">💡</div><div class="cal-b"><strong>一番かんたんな方法：</strong>claude.ai Web版の <strong>Settings → Connectors</strong> から GUI で接続。Slack・Gmail・Googleカレンダー・Notionはこちらが最速で設定ファイル不要。</div></div>
+<div class="cp" style="margin-top:8px">
+  <div class="cp-h"><div class="lb">📋 コピペOK — settings.json に追記する MCP 設定テンプレート</div><div class="tag">トークン部分を書き換えて使用</div></div>
+  <code>"mcpServers": {
   "slack": {
     "type": "http",
     "url": "https://mcp.slack.com/sse",
-    "headers": {
-      "Authorization": "Bearer [SlackBotToken をここに]"
-    }
+    "headers": { "Authorization": "Bearer [SlackBotToken をここに]" }
   },
   "notion": {
     "type": "http",
     "url": "https://mcp.notion.com/sse",
-    "headers": {
-      "Authorization": "Bearer [NotionToken をここに]"
-    }
+    "headers": { "Authorization": "Bearer [NotionToken をここに]" }
   }
 }</code>
-  </div>
-  <div class="tw"><table>
-    <tr><th>サービス</th><th>トークン取得場所</th><th>難易度</th></tr>
-    <tr><td>Slack</td><td>api.slack.com/apps → Bot Token</td><td><span class="bg bg-g">簡単</span></td></tr>
-    <tr><td>Gmail / Calendar</td><td>claude.ai/settings/connectors（GUI）</td><td><span class="bg bg-g">簡単</span></td></tr>
-    <tr><td>Notion</td><td>notion.so/my-integrations</td><td><span class="bg bg-g">簡単</span></td></tr>
-    <tr><td>MoneyForward</td><td>app-portal.moneyforward.com → OAuth</td><td><span class="bg bg-b">中級</span></td></tr>
-    <tr><td>GitHub</td><td>github.com/settings/tokens</td><td><span class="bg bg-g">簡単</span></td></tr>
-  </table></div>
-  <div class="pf">Claude Code 実装手順書 · Step 8</div>
+</div>
+<div class="tw"><table>
+  <tr><th>サービス</th><th>トークン取得場所</th><th>難易度</th></tr>
+  <tr><td>Slack</td><td>api.slack.com/apps → Bot Token</td><td><span class="bg bg-g">簡単</span></td></tr>
+  <tr><td>Gmail / Calendar</td><td>claude.ai/settings/connectors（GUI）</td><td><span class="bg bg-g">簡単</span></td></tr>
+  <tr><td>Notion</td><td>notion.so/my-integrations</td><td><span class="bg bg-g">簡単</span></td></tr>
+  <tr><td>MoneyForward</td><td>app-portal.moneyforward.com → OAuth</td><td><span class="bg bg-b">中級</span></td></tr>
+  <tr><td>GitHub</td><td>github.com/settings/tokens</td><td><span class="bg bg-g">簡単</span></td></tr>
+</table></div>
 </div>
 
 <!-- STEP 9 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">⏰</div><div><h3>Step 9 — 定期自動実行の設定</h3><div class="info">Chapter 3 · 外部連携と自動化</div></div></div>
-
-  <div class="step"><div class="sn">1</div><div class="sc"><h4>実行スクリプトを作成（Mac/Windows共通）</h4>
-    <div class="cpbox" style="margin-top:4px">
-      <div class="cpbox-header"><div class="label">📋 コピペOK — 汎用実行スクリプト（~/work/scripts/run-claude.sh）</div></div>
-      <code>#!/bin/bash
-LOG=~/work/logs/claude_auto.log
-mkdir -p ~/work/logs
-
+<div class="ph"><div class="ph-icon">⏰</div><div><h3>Step 9 — 定期自動実行の設定</h3><div class="info">Chapter 3 · 外部連携と自動化</div></div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — 汎用実行スクリプト（~/work/scripts/run-claude.sh）</div></div>
+  <code>#!/bin/bash
+LOG=~/work/logs/claude_auto.log && mkdir -p ~/work/logs
 echo "[$(date '+%Y-%m-%d %H:%M')] 開始" >> "$LOG"
-
 claude --dangerously-skip-permissions -p "
-# ここに実行したいプロンプトを書く（例：以下は朝のナレッジ収集）
-今日の組織マネジメント関連の最新情報を5件収集し、
-各100文字以内で要約してください。
-Slack MCPを使って #knowledge チャンネルに投稿してください。
-投稿冒頭：「本日のナレッジ ($(date +%Y/%m/%d))」
+# ここに実行したいプロンプトを書く（例：ナレッジ自動収集）
+今日の組織マネジメント関連の最新情報を5件収集し各100文字以内で要約。
+Slack MCPで #knowledge に投稿。冒頭：「本日のナレッジ ($(date +%Y/%m/%d))」
 " >> "$LOG" 2>&1
-
 echo "[$(date '+%Y-%m-%d %H:%M')] 完了" >> "$LOG"</code>
-    </div>
-    <div class="cb" style="margin-top:6px"><code><span class="cmd">chmod +x ~/work/scripts/run-claude.sh</span></code></div></div></div>
-
-  <div class="os">
-    <div class="os-b">
-      <div class="os-h">🍎 Mac（launchd）— 毎朝7時に自動実行</div>
-      <div style="padding:10px">
-        <div class="cpbox">
-          <div class="cpbox-header"><div class="label">📋 コピペOK — plist ファイル</div></div>
-          <code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
-&lt;plist version="1.0"&gt;&lt;dict&gt;
-  &lt;key&gt;Label&lt;/key&gt;
-  &lt;string&gt;com.yourname.claude-auto&lt;/string&gt;
+</div>
+<div class="os">
+  <div class="os-b"><div class="os-h">🍎 Mac — launchd で毎朝7時自動実行</div><div class="inner">
+    <div class="cp">
+      <div class="cp-h"><div class="lb">📋 コピペOK — plist ファイル（[yourname]を書き換えて保存）</div></div>
+      <code>&lt;plist version="1.0"&gt;&lt;dict&gt;
+  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;com.yourname.claude-auto&lt;/string&gt;
   &lt;key&gt;ProgramArguments&lt;/key&gt;
   &lt;array&gt;
     &lt;string&gt;/bin/bash&lt;/string&gt;
-    &lt;string&gt;/Users/[あなたのユーザー名]/work/scripts/run-claude.sh&lt;/string&gt;
+    &lt;string&gt;/Users/[yourname]/work/scripts/run-claude.sh&lt;/string&gt;
   &lt;/array&gt;
   &lt;key&gt;StartCalendarInterval&lt;/key&gt;
-  &lt;dict&gt;
-    &lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;7&lt;/integer&gt;
-    &lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;
-  &lt;/dict&gt;
-  &lt;key&gt;StandardOutPath&lt;/key&gt;
-  &lt;string&gt;/Users/[あなたのユーザー名]/work/logs/launchd.log&lt;/string&gt;
-  &lt;key&gt;StandardErrorPath&lt;/key&gt;
-  &lt;string&gt;/Users/[あなたのユーザー名]/work/logs/launchd_err.log&lt;/string&gt;
+  &lt;dict&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;7&lt;/integer&gt;
+        &lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
 &lt;/dict&gt;&lt;/plist&gt;</code>
-        </div>
-        <div class="cb" style="margin-top:6px"><code><span class="c"># [yourname]を自分のユーザー名に書き換えてから実行</span>
-<span class="cmd">cp /path/to/plist ~/Library/LaunchAgents/com.yourname.claude-auto.plist</span>
-<span class="cmd">launchctl load ~/Library/LaunchAgents/com.yourname.claude-auto.plist</span></code></div>
-      </div>
     </div>
-    <div class="os-b">
-      <div class="os-h">🪟 Windows — タスクスケジューラに登録</div>
-      <div style="padding:10px">
-        <div class="cpbox">
-          <div class="cpbox-header"><div class="label">📋 コピペOK — PowerShell（管理者権限）</div></div>
-          <code>$action = New-ScheduledTaskAction `
-  -Execute "wsl.exe" `
-  -Argument "bash ~/work/scripts/run-claude.sh"
-
-$trigger = New-ScheduledTaskTrigger `
-  -Daily -At "07:00"
-
-$settings = New-ScheduledTaskSettingsSet `
-  -RunOnlyIfNetworkAvailable
-
-Register-ScheduledTask `
-  -TaskName "ClaudeAutoRun" `
-  -Action $action `
-  -Trigger $trigger `
-  -Settings $settings `
-  -RunLevel Highest `
-  -Force
+    <div class="cb" style="margin-top:4px"><code><span class="cmd">launchctl load ~/Library/LaunchAgents/com.yourname.claude-auto.plist</span></code></div>
+  </div></div>
+  <div class="os-b"><div class="os-h">🪟 Windows — タスクスケジューラに登録（PowerShell管理者）</div><div class="inner">
+    <div class="cp">
+      <div class="cp-h"><div class="lb">📋 コピペOK — PowerShell（管理者権限で実行）</div></div>
+      <code>$a = New-ScheduledTaskAction -Execute "wsl.exe" -Argument "bash ~/work/scripts/run-claude.sh"
+$t = New-ScheduledTaskTrigger -Daily -At "07:00"
+Register-ScheduledTask -TaskName "ClaudeAutoRun" -Action $a -Trigger $t -RunLevel Highest -Force
 Write-Host "タスク登録完了"</code>
-        </div>
-      </div>
     </div>
-  </div>
-  <div class="pf">Claude Code 実装手順書 · Step 9</div>
+  </div></div>
+</div>
 </div>
 
 <!-- STEP 10 -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">🖥️</div><div><h3>Step 10 — Cursor IDE との連携</h3><div class="info">Chapter 3 · 外部連携と自動化</div></div></div>
-  <div class="g2">
-    <div>
-      <div class="step"><div class="sn">1</div><div class="sc"><h4>Cursor をインストール</h4><p><strong>cursor.com</strong> からダウンロード。Mac/Windows両対応。VS Code ベースで操作感が同じ。</p></div></div>
-      <div class="step"><div class="sn">2</div><div class="sc"><h4>Settings → Models → Claude を選択</h4><p><code class="il">claude-sonnet-4-5</code> を選択。Anthropic APIキーか claude.ai アカウントで認証。</p></div></div>
-      <div class="step"><div class="sn">3</div><div class="sc"><h4>.cursorrules を作成</h4>
-        <div class="cpbox" style="margin-top:4px">
-          <div class="cpbox-header"><div class="label">📋 コピペOK — .cursorrules テンプレート</div></div>
-          <code># Cursor AIへの指示
+<div class="ph"><div class="ph-icon">🖥️</div><div><h3>Step 10 — Cursor IDE との連携</h3><div class="info">Chapter 3 · 外部連携と自動化</div></div></div>
+<div class="g2">
+  <div>
+    <div class="step"><div class="sn">1</div><div class="sc"><h4>Cursor をインストール</h4><p><strong>cursor.com</strong> からDL。Mac/Windows両対応・VS Codeベース。</p></div></div>
+    <div class="step"><div class="sn">2</div><div class="sc"><h4>Settings → Models → Claude を選択</h4><p><code class="il">claude-sonnet-4-5</code> 推奨。claude.ai アカウントで認証。</p></div></div>
+    <div class="step"><div class="sn">3</div><div class="sc"><h4>.cursorrules を作成</h4>
+      <div class="cp" style="margin-top:4px">
+        <div class="cp-h"><div class="lb">📋 コピペOK — .cursorrules テンプレート</div></div>
+        <code># Cursor AIへの指示
 - コードにコメントは原則入れない
 - 変数名は英語・スネークケース統一
 - エラーハンドリングは必ず入れる
-- TypeScript の型定義を省略しない
-- テストコードは実装と同時に書く</code>
-        </div></div></div>
-    </div>
-    <div>
-      <h4 style="font-size:10pt;font-weight:700;margin-bottom:8px">使い分けまとめ</h4>
-      <div class="tw"><table>
-        <tr><th>作業</th><th>ツール</th></tr>
-        <tr><td>コードを書く・修正</td><td><span class="bg bg-b">Cursor</span></td></tr>
-        <tr><td>settings.json 編集</td><td><span class="bg bg-b">Cursor</span></td></tr>
-        <tr><td>ファイル・フォルダ操作</td><td><span class="bg bg-p">Claude Code</span></td></tr>
-        <tr><td>スクリプト実行・自動化</td><td><span class="bg bg-p">Claude Code</span></td></tr>
-        <tr><td>コードのレビュー・説明</td><td><span class="bg bg-g">どちらでも</span></td></tr>
-      </table></div>
-      <div class="cal cal-warn" style="margin-top:8px"><div class="cal-icon">⚠️</div><div class="cal-body"><strong>ターミナルの混同注意：</strong>Cursor内ターミナルと通常のTerminalは別物。長い処理はTerminalアプリで実行推奨。</div></div>
-    </div>
+- TypeScript の型定義を省略しない</code>
+      </div></div></div>
   </div>
-  <div class="pf">Claude Code 実装手順書 · Step 10</div>
+  <div>
+    <div class="tw"><table>
+      <tr><th>作業</th><th>推奨ツール</th></tr>
+      <tr><td>コードを書く・修正</td><td><span class="bg bg-b">Cursor</span></td></tr>
+      <tr><td>settings.json 編集</td><td><span class="bg bg-b">Cursor</span></td></tr>
+      <tr><td>ファイル・フォルダ操作</td><td><span class="bg bg-p">Claude Code</span></td></tr>
+      <tr><td>スクリプト実行・自動化</td><td><span class="bg bg-p">Claude Code</span></td></tr>
+      <tr><td>コードのレビュー・説明</td><td><span class="bg bg-g">どちらでも</span></td></tr>
+    </table></div>
+    <div class="cal warn"><div class="cal-i">⚠️</div><div class="cal-b"><strong>ターミナルの混同注意：</strong>Cursor内ターミナルと通常のTerminalは別物。長い処理はTerminalアプリで実行推奨。</div></div>
+  </div>
+</div>
 </div>
 
-<!-- APPENDIX COVER -->
-<div class="ch-div">
-  <div class="ch-num">A</div>
-  <div class="ch-info">
-    <div class="ch-label">Appendix</div>
-    <h2>コピペで即完了！自動化レシピ集</h2>
-    <p>実際に動く自動化スクリプト・プロンプト集。コピペして変数を書き換えるだけで使えます。</p>
-  </div>
-  <div class="ch-time">⏱ 各30〜60分</div>
-</div>
+<!-- ════════ APPENDIX ════════ -->
+<div class="ch"><div class="ch-n">A</div><div class="ch-info"><div class="ch-label">Appendix</div><h2>コピペで即完了！自動化レシピ集</h2></div><div class="ch-time">⏱ 各30〜60分</div></div>
 
-<!-- RECIPE A -->
+<!-- RECIPE A: SNS -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">📱</div><div><h3>レシピ A — SNS投稿案の自動生成</h3><div class="info">Appendix · 自動化レシピ</div></div></div>
-  <div class="flow"><div class="fi">📂 プロンプトファイル</div><div class="fa">→</div><div class="fi">🤖 Claude生成</div><div class="fa">→</div><div class="fi">📋 3案提示</div><div class="fa">→</div><div class="fi">✅ 選択・投稿</div></div>
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — claude に直接貼り付けて即実行</div><div class="copy-badge">テーマ部分だけ書き換えて使用</div></div>
-    <code>以下の条件でX（Twitter）投稿案を3案生成してください。
+<div class="ph"><div class="ph-icon">📱</div><div><h3>レシピ A — SNS投稿案の自動生成</h3><div class="info">Appendix · 自動化レシピ</div></div></div>
+<div class="flow"><div class="fi">📂 プロンプト</div><div class="fa">→</div><div class="fi">🤖 Claude生成</div><div class="fa">→</div><div class="fi">📋 3案提示</div><div class="fa">→</div><div class="fi">✅ 選択・投稿</div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — claude に直接貼り付け（テーマ部分だけ書き換えて即実行）</div></div>
+  <code>以下の条件でX投稿案を3案生成してください。
 
-テーマ：【ここにテーマを書く】例：「リモートワークでチームの士気を上げる方法」
+テーマ：【ここにテーマを書く】
 
 条件：
-- 文字数：140文字以内
-- 数字を必ず1つ以上含める
-- 絵文字は2個まで
-- 読者が「保存したくなる」実用的な内容
-- 抽象論ではなく具体的な行動を書く
+- 140文字以内・数字を必ず1つ以上含める・絵文字2個まで
+- 読者が「保存したくなる」実用的な内容・抽象論ではなく具体的な行動
 
-出力形式：
-【A案】（文字数: XX字）
-→ 投稿文
-
-【B案】（文字数: XX字）
-→ 投稿文
-
-【C案】（文字数: XX字）
-→ 投稿文</code>
-  </div>
-  <div class="div"></div>
-  <div class="ph" style="margin-top:12px"><div class="ph-icon">🌍</div><div><h3>レシピ B — ナレッジ自動収集・Slack配信スクリプト</h3></div></div>
-  <div class="flow"><div class="fi">⏰ 毎朝自動実行</div><div class="fa">→</div><div class="fi">🌐 最新情報収集</div><div class="fa">→</div><div class="fi">📋 要約整形</div><div class="fa">→</div><div class="fi">💬 Slack配信</div></div>
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — ~/work/scripts/knowledge-digest.sh</div><div class="copy-badge">TOPIC と CHANNEL を書き換えて使用</div></div>
-    <code>#!/bin/bash
-# ナレッジ自動収集・Slack配信スクリプト
-# 事前準備：Slack MCP を settings.json に設定しておく
-
-TOPIC="組織マネジメント エンゲージメント 最新トレンド"  # ←変更してください
-CHANNEL="#knowledge"  # ←変更してください
-LOG=~/work/logs/digest.log
-mkdir -p ~/work/logs
-
-echo "[$(date '+%Y-%m-%d %H:%M')] ダイジェスト開始" >> "$LOG"
-
+出力：【A案】（XX字）→ 投稿文 【B案】（XX字）→ 投稿文 【C案】（XX字）→ 投稿文</code>
+</div>
+<div class="div"></div>
+<div class="ph" style="margin-top:4px"><div class="ph-icon">🌍</div><div><h3>レシピ B — ナレッジ自動収集・Slack配信スクリプト</h3></div></div>
+<div class="flow"><div class="fi">⏰ 毎朝自動</div><div class="fa">→</div><div class="fi">🌐 最新情報収集</div><div class="fa">→</div><div class="fi">📋 要約</div><div class="fa">→</div><div class="fi">💬 Slack配信</div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — ~/work/scripts/knowledge-digest.sh（TOPIC・CHANNELを書き換えて使用）</div></div>
+  <code>#!/bin/bash
+TOPIC="組織マネジメント エンゲージメント 最新トレンド"  # ←変更
+CHANNEL="#knowledge"  # ←変更
+LOG=~/work/logs/digest.log && mkdir -p ~/work/logs
+echo "[$(date '+%Y-%m-%d %H:%M')] 開始" >> "$LOG"
 claude --dangerously-skip-permissions -p "
 次のテーマに関する最新情報を5件収集してください：${TOPIC}
-
-各情報を以下の形式でまとめてください：
-【タイトル】
-【要約】（100文字以内）
-【なぜ重要か】（50文字以内）
-【出典URL】
-
-5件まとめたら、Slack MCPを使って ${CHANNEL} チャンネルに投稿してください。
-投稿冒頭：「📚 本日のナレッジ ($(date +%Y/%m/%d)) #自動収集」
+各件：【タイトル】【要約100文字以内】【なぜ重要か50文字以内】【出典URL】
+5件まとめたらSlack MCPで ${CHANNEL} に投稿。冒頭：「📚 本日のナレッジ ($(date +%Y/%m/%d))」
 " >> "$LOG" 2>&1
-
 echo "[$(date '+%Y-%m-%d %H:%M')] 完了" >> "$LOG"</code>
-  </div>
-  <div class="pf">Claude Code 実装手順書 · Appendix A-B</div>
+</div>
 </div>
 
-<!-- RECIPE C-D -->
+<!-- RECIPE C: GAS -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">📅</div><div><h3>レシピ C — 商談ブリーフ自動生成（GAS + Gemini）</h3><div class="info">Appendix · 自動化レシピ</div></div></div>
-  <div class="flow"><div class="fi">⏰ 毎朝7時</div><div class="fa">→</div><div class="fi">📅 翌日商談を検索</div><div class="fa">→</div><div class="fi">🔍 企業・人物調査</div><div class="fa">→</div><div class="fi">📝 カレンダーに書込</div><div class="fa">→</div><div class="fi">💬 Slack通知</div></div>
-  <div class="cal cal-tip"><div class="cal-icon">💡</div><div class="cal-body"><strong>実装方法：</strong>script.google.com（GAS）＋ aistudio.google.com（Gemini APIキー取得）。Claude Code 不要、Googleアカウントだけで完結。</div></div>
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — Google Apps Script（GAS）コード全体</div><div class="copy-badge">スクリプトプロパティに4つ設定後に実行</div></div>
-    <code>// ==== スクリプトプロパティ（設定 → スクリプトプロパティ）に設定 ====
-// GEMINI_API_KEY：aistudio.google.com で取得
-// SLACK_BOT_TOKEN：api.slack.com/apps で取得
-// SLACK_USER_ID：SlackプロフィールのメンバーID（Uから始まる）
-// MEETING_KEYWORDS：商談,打合せ,MTG,面談,meeting
+<div class="ph"><div class="ph-icon">📅</div><div><h3>レシピ C — 商談ブリーフ自動生成（Google Apps Script + Gemini）</h3><div class="info">Appendix · 自動化レシピ</div></div></div>
+<div class="flow"><div class="fi">⏰ 毎朝7時</div><div class="fa">→</div><div class="fi">📅 翌日商談を検索</div><div class="fa">→</div><div class="fi">🔍 Geminiで企業調査</div><div class="fa">→</div><div class="fi">📝 カレンダーに書込</div><div class="fa">→</div><div class="fi">💬 Slack通知</div></div>
+<div class="cal tip"><div class="cal-i">💡</div><div class="cal-b"><strong>事前準備：</strong>① script.google.com で新規プロジェクト作成 ② aistudio.google.com で Gemini API キー取得 ③ スクリプトプロパティに4つの値を設定してから実行</div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — Google Apps Script コード全体（そのまま貼り付けて動く）</div><div class="tag">スクリプトプロパティ4つ設定後に実行</div></div>
+  <code>// スクリプトプロパティ（設定→スクリプトプロパティ）に設定：
+// GEMINI_API_KEY / SLACK_BOT_TOKEN / SLACK_USER_ID / MEETING_KEYWORDS(商談,MTG,打合せ,面談)
 
 function generateBriefs() {
-  var props = PropertiesService.getScriptProperties();
-  var geminiKey = props.getProperty('GEMINI_API_KEY');
-  var slackToken = props.getProperty('SLACK_BOT_TOKEN');
-  var userId = props.getProperty('SLACK_USER_ID');
-  var keywords = (props.getProperty('MEETING_KEYWORDS') || '商談,MTG,打合せ,面談').split(',');
-
+  var p = PropertiesService.getScriptProperties();
+  var keywords = (p.getProperty('MEETING_KEYWORDS') || '商談,MTG,打合せ').split(',');
   var cal = CalendarApp.getDefaultCalendar();
-  var tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  var events = cal.getEventsForDay(tomorrow);
+  var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
 
-  events.forEach(function(event) {
-    var title = event.getTitle();
-    var isTarget = keywords.some(function(kw) { return title.indexOf(kw) !== -1; });
-    if (!isTarget) return;
-
-    var prompt = title + ' という商談の相手について調査してください。'
-      + '①会社概要 ②最近のニュース ③想定課題 ④話すべきポイントをまとめてください。'
-      + '返答は日本語で500文字以内。';
+  cal.getEventsForDay(tomorrow).forEach(function(ev) {
+    var title = ev.getTitle();
+    if (!keywords.some(function(kw){return title.indexOf(kw)!==-1;})) return;
 
     var res = UrlFetchApp.fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey,
-      { method: 'POST', contentType: 'application/json',
-        payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+p.getProperty('GEMINI_API_KEY'),
+      {method:'POST',contentType:'application/json',
+       payload:JSON.stringify({contents:[{parts:[{text:title+'の商談相手について①会社概要②最近のニュース③想定課題④話すべきポイントを日本語500字以内でまとめてください。'}]}]})}
     );
-    var brief = JSON.parse(res.getContentText())
-      .candidates[0].content.parts[0].text;
-
-    event.setDescription('【AI商談ブリーフ】\n' + brief);
+    var brief = JSON.parse(res.getContentText()).candidates[0].content.parts[0].text;
+    ev.setDescription('【AI商談ブリーフ】\n' + brief);
 
     var ch = JSON.parse(UrlFetchApp.fetch('https://slack.com/api/conversations.open',
-      { method: 'POST', headers: { Authorization: 'Bearer ' + slackToken },
-        contentType: 'application/json', payload: JSON.stringify({ users: userId }) }
+      {method:'POST',headers:{Authorization:'Bearer '+p.getProperty('SLACK_BOT_TOKEN')},
+       contentType:'application/json',payload:JSON.stringify({users:p.getProperty('SLACK_USER_ID')})}
     ).getContentText()).channel.id;
-
-    UrlFetchApp.fetch('https://slack.com/api/chat.postMessage', {
-      method: 'POST', headers: { Authorization: 'Bearer ' + slackToken },
-      contentType: 'application/json',
-      payload: JSON.stringify({ channel: ch,
-        text: '📋 明日の商談ブリーフを生成しました：' + title + '\n\n' + brief })
-    });
+    UrlFetchApp.fetch('https://slack.com/api/chat.postMessage',
+      {method:'POST',headers:{Authorization:'Bearer '+p.getProperty('SLACK_BOT_TOKEN')},
+       contentType:'application/json',
+       payload:JSON.stringify({channel:ch,text:'📋 明日の商談ブリーフ：'+title+'\n\n'+brief})});
   });
 }
 // トリガー設定：時間主導型 → 日付ベース → 午前6〜7時</code>
-  </div>
-  <div class="pf">Claude Code 実装手順書 · Appendix C</div>
+</div>
 </div>
 
 <!-- RECIPE D + TROUBLESHOOT -->
 <div class="page">
-  <div class="ph"><div class="ph-icon">💹</div><div><h3>レシピ D — 財務分析の自動化・Slack配信</h3><div class="info">Appendix · 自動化レシピ</div></div></div>
-  <div class="flow"><div class="fi">⏰ 毎月1日 9時</div><div class="fa">→</div><div class="fi">💰 会計MCP取得</div><div class="fa">→</div><div class="fi">📊 Claude分析</div><div class="fa">→</div><div class="fi">💬 Slack DM</div></div>
-  <div class="cpbox">
-    <div class="cpbox-header"><div class="label">📋 コピペOK — ~/work/scripts/monthly-finance.sh</div><div class="copy-badge">会計ツールMCP接続後に使用</div></div>
-    <code>#!/bin/bash
-# 毎月1日に launchd で実行（経費精算締め後の2ヶ月前データを分析）
-LOG=~/work/logs/mf_report.log
-mkdir -p ~/work/logs
-
+<div class="ph"><div class="ph-icon">💹</div><div><h3>レシピ D — 財務分析の自動化・Slack配信</h3><div class="info">Appendix · 自動化レシピ</div></div></div>
+<div class="flow"><div class="fi">⏰ 毎月1日 9時</div><div class="fa">→</div><div class="fi">💰 会計MCP取得</div><div class="fa">→</div><div class="fi">📊 Claude分析</div><div class="fa">→</div><div class="fi">💬 Slack DM</div></div>
+<div class="cp">
+  <div class="cp-h"><div class="lb">📋 コピペOK — ~/work/scripts/monthly-finance.sh（会計ツールMCP接続後に使用）</div></div>
+  <code>#!/bin/bash
+LOG=~/work/logs/mf_report.log && mkdir -p ~/work/logs
 echo "[$(date '+%Y-%m-%d %H:%M')] 財務レポート開始" >> "$LOG"
-
 claude --dangerously-skip-permissions -p "
 会計ツールのMCPを使って先々月の試算表データを取得してください。
-
-取得後、以下を分析してレポートを作成してください：
+取得後、以下を分析してレポートを作成：
 1. 売上・費用・営業利益の月次サマリー（数字付き）
 2. 前月比（%で表示）
 3. 費用の主要カテゴリと増減の考察
 4. 来月注意すべきポイント（1〜2点）
-
-分析が完了したら、Slack MCPを使って自分のDMにレポートを投稿してください。
-投稿冒頭：「📊 月次財務レポート ($(date +%Y年%m月現在))」
+Slack MCPで自分のDMにレポートを投稿。冒頭：「📊 月次財務レポート ($(date +%Y年%m月現在))」
 " >> "$LOG" 2>&1
-
 echo "[$(date '+%Y-%m-%d %H:%M')] 完了" >> "$LOG"</code>
-  </div>
-
-  <div class="div"></div>
-  <div class="ph" style="margin-top:4px"><div class="ph-icon">🔧</div><div><h3>よくあるトラブルと対処法</h3></div></div>
-  <div class="g2">
-    <div class="card"><h4>❌ command not found: claude</h4>
-      <div class="cb" style="margin-top:6px"><code>npm config get prefix
+</div>
+<div class="div"></div>
+<div class="ph" style="margin-top:4px"><div class="ph-icon">🔧</div><div><h3>よくあるトラブルと対処法</h3></div></div>
+<div class="g2">
+  <div class="card"><h4>❌ command not found: claude</h4>
+    <div class="cb" style="margin-top:5px"><code>npm config get prefix
 <span class="c"># 表示パス/bin を ~/.zshrc に追加：</span>
 export PATH="$HOME/.npm-packages/bin:$PATH"</code></div></div>
-    <div class="card"><h4>❌ settings.json が読み込まれない</h4>
-      <div class="cb" style="margin-top:6px"><code><span class="c"># JSON形式を確認</span>
-python3 -m json.tool ~/.claude/settings.json</code></div></div>
-    <div class="card"><h4>❌ Hook が動かない</h4>
-      <div class="cb" style="margin-top:6px"><code>chmod +x ~/.claude/hooks/*.sh
-<span class="c"># 手動テスト</span>
-bash ~/.claude/hooks/notify.sh</code></div></div>
-    <div class="card"><h4>❌ launchd が動かない（Mac）</h4>
-      <div class="cb" style="margin-top:6px"><code>launchctl unload ~/Library/LaunchAgents/*.plist
-launchctl load ~/Library/LaunchAgents/*.plist
+  <div class="card"><h4>❌ settings.json が読み込まれない</h4>
+    <div class="cb" style="margin-top:5px"><code>python3 -m json.tool ~/.claude/settings.json
+<span class="c"># エラー→Cursor/VS Codeで再編集</span></code></div></div>
+  <div class="card"><h4>❌ Hook が動かない</h4>
+    <div class="cb" style="margin-top:5px"><code>chmod +x ~/.claude/hooks/*.sh
+bash ~/.claude/hooks/notify.sh  <span class="c"># 手動テスト</span></code></div></div>
+  <div class="card"><h4>❌ launchd が動かない（Mac）</h4>
+    <div class="cb" style="margin-top:5px"><code>launchctl unload ~/Library/LaunchAgents/*.plist
+launchctl load  ~/Library/LaunchAgents/*.plist
 cat ~/work/logs/launchd_err.log</code></div></div>
-    <div class="card"><h4>❌ MCP ツールが見えない</h4><p>claude を再起動。settings.json の mcpServers セクションが正しいか確認。JSON形式も確認。</p></div>
-    <div class="card"><h4>❌ Windows 日本語化け</h4>
-      <div class="cb" style="margin-top:6px"><code>sudo locale-gen ja_JP.UTF-8
+  <div class="card"><h4>❌ MCP ツールが見えない</h4><p>claude を再起動。settings.json の mcpServers が正しいか確認。JSON形式も確認。</p></div>
+  <div class="card"><h4>❌ Windows 日本語が文字化け</h4>
+    <div class="cb" style="margin-top:5px"><code>sudo locale-gen ja_JP.UTF-8
 sudo update-locale LANG=ja_JP.UTF-8</code></div></div>
-  </div>
-  <div class="pf">Claude Code 実装手順書 · Appendix D + Troubleshoot</div>
+</div>
 </div>
 
 <!-- FINAL -->
-<div class="page" style="page-break-after:auto">
-  <div class="hl" style="margin-bottom:14px">
-    <h4>実装完了後にやること</h4>
-    <p>設定を整えたら「使いながら育てる」が重要です。Claudeが間違えたとき → なぜ間違えたかを分析 → rules/ や CLAUDE.md に追記 → 同じミスが繰り返されなくなる。このサイクルが数ヶ月後に大きな差を生みます。</p>
-  </div>
-  <h4 style="font-size:11pt;font-weight:700;margin-bottom:10px">最終チェックリスト</h4>
-  <ul class="cl">
-    <li><div class="cb2"></div>Node.js と Claude Code をインストールした</li>
-    <li><div class="cb2"></div>claude.ai の Pro 以上のアカウントでログインした</li>
-    <li><div class="cb2"></div>~/.claude/CLAUDE.md にプロフィール・ルールを書いた</li>
-    <li><div class="cb2"></div>settings.json にセキュリティ設定（deny/allow）を追加した</li>
-    <li><div class="cb2"></div>完了通知フック（Stop hook）を設定してテストした</li>
-    <li><div class="cb2"></div>よく使う作業を Skill として6種類定義した</li>
-    <li><div class="cb2"></div>「コピペ初期メモリ」を claude に貼り付けて記憶させた</li>
-    <li><div class="cb2"></div>Slack / Gmail / Googleカレンダーのどれかを MCP 接続した</li>
-    <li><div class="cb2"></div>定期実行スクリプトを1本作成してスケジューラに登録した</li>
-    <li><div class="cb2"></div>Cursor をインストールして Claude Code と使い分けを把握した</li>
-  </ul>
-  <div class="cal cal-ok" style="margin-top:12px"><div class="cal-icon">🎉</div><div class="cal-body"><strong>全項目チェックできたら完了！</strong>あとは Rules にフィードバックを蓄積し続けることで、Claude Code はどんどん「自分のことを知っているAI」に育っていきます。</div></div>
+<div class="page">
+<div class="hl" style="margin-bottom:10px">
+  <h4>実装完了後にやること</h4>
+  <p>Claudeが間違えたとき → なぜ間違えたか分析 → rules/ や CLAUDE.md に追記 → 同じミスが繰り返されなくなる。このフィードバックループが数ヶ月後に大きな差を生みます。</p>
+</div>
+<h4 style="font-size:10pt;font-weight:700;margin-bottom:7px">最終チェックリスト</h4>
+<ul class="cl">
+  <li><div class="cb2"></div>Node.js と Claude Code をインストールした</li>
+  <li><div class="cb2"></div>claude.ai の Pro 以上のアカウントでログインした</li>
+  <li><div class="cb2"></div>~/.claude/CLAUDE.md にプロフィール・ルールを書いた</li>
+  <li><div class="cb2"></div>settings.json にセキュリティ設定（deny/allow）を追加した</li>
+  <li><div class="cb2"></div>完了通知フック（Stop hook）を設定してテストした</li>
+  <li><div class="cb2"></div>Skills 6種類を一括作成した</li>
+  <li><div class="cb2"></div>「コピペ初期メモリ」を claude に貼り付けて記憶させた</li>
+  <li><div class="cb2"></div>Slack / Gmail / Googleカレンダーのどれかを MCP 接続した</li>
+  <li><div class="cb2"></div>定期実行スクリプトを1本作成してスケジューラに登録した</li>
+  <li><div class="cb2"></div>Cursor をインストールして Claude Code と使い分けを把握した</li>
+</ul>
+<div class="cal ok" style="margin-top:8px"><div class="cal-i">🎉</div><div class="cal-b"><strong>全項目チェックできたら完了！</strong>あとは Rules にフィードバックを蓄積し続けると、Claude Code はどんどん「自分のことを知っているAI」に育っていきます。</div></div>
 </div>
 
 </body>
